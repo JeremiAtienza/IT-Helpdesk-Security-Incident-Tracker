@@ -26,3 +26,4 @@ qrcode==7.4.2
 django-phonenumber-field==8.4.0
 phonenumbers==8.13.11
 twilio==8.4.0
+reportlab==4.0.0
