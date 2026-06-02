@@ -416,17 +416,17 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 # best-effort; don't raise from the error handler
                 pass
 
-            ctx['error'] = 'Unable to load dashboard data at this time.'
+            ctx['error'] = 'Unable to load dashboard data at this time. Check Render environment variables and database configuration.'
             # provide safe empty defaults so template renders
-            ctx.setdefault('open_tickets', 0)
-            ctx.setdefault('resolved_tickets', 0)
-            ctx.setdefault('high_priority', 0)
-            ctx.setdefault('critical_tickets', 0)
-            ctx.setdefault('overdue_tickets', 0)
-            ctx.setdefault('avg_resolution_hours', None)
-            ctx.setdefault('live_tickets', [])
-            ctx.setdefault('status_counts', [])
-            ctx.setdefault('priority_counts', [])
-            ctx.setdefault('top_categories', [])
-            ctx.setdefault('recent_audit_events', [])
+            ctx['open_tickets'] = 0
+            ctx['resolved_tickets'] = 0
+            ctx['high_priority'] = 0
+            ctx['critical_tickets'] = 0
+            ctx['overdue_tickets'] = 0
+            ctx['avg_resolution_hours'] = None
+            ctx['live_tickets'] = []
+            ctx['status_counts'] = []
+            ctx['priority_counts'] = []
+            ctx['top_categories'] = []
+            ctx['recent_audit_events'] = []
         return ctx
