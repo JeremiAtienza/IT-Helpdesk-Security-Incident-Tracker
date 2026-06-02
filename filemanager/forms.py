@@ -15,12 +15,13 @@ class VaultFileForm(forms.ModelForm):
 class IncidentTicketForm(forms.ModelForm):
     class Meta:
         model = IncidentTicket
-        fields = ['title', 'description', 'category', 'priority', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
+        fields = ['title', 'description', 'category', 'priority', 'status', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Incident summary'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describe the issue or security incident'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
             'impact_level': forms.Select(attrs={'class': 'form-select'}),
             'affected_assets': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'List affected hosts/IPs/services (JSON or comma-separated)'}),
             'iocs': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Indicators of compromise (hashes, domains, IPs)'}),
@@ -37,8 +38,9 @@ class IncidentTicketUpdateForm(forms.ModelForm):
     """Form for admin to update incident status, category, priority, and assign personnel"""
     class Meta:
         model = IncidentTicket
-        fields = ['category', 'priority', 'impact_level', 'assignee', 'escalation_level']
+        fields = ['status', 'category', 'priority', 'impact_level', 'assignee', 'escalation_level']
         widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
             'impact_level': forms.Select(attrs={'class': 'form-select'}),

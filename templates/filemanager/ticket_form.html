@@ -42,6 +42,15 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        {% if form.status %}
+                        {{ form.status.label_tag }}
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                        <div class="text-danger small">{{ form.status.errors }}</div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         {% if form.impact_level %}
                         {{ form.impact_level.label_tag }}
                         {{ form.impact_level }}
