@@ -23,7 +23,7 @@ from filemanager.views import AdminDashboardView
 urlpatterns = [
     path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('admin/', admin.site.urls),
-    path('accounts/', include('two_factor.urls', namespace='two_factor')),
+    path('accounts/', include('two_factor.urls')),
     # Keep classic auth fallback and custom login form for password reset / logout paths
     path('accounts/login/', auth_views.LoginView.as_view(authentication_form=CustomAuthForm), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
