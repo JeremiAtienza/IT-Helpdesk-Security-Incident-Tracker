@@ -119,7 +119,7 @@
                                     System
                                 {% endif %}
                             </td>
-                            <td>{{ event.action|replace:'_',' '|capfirst }}</td>
+                            <td>{{ event.action|capfirst }}</td>
                             <td>{{ event.object_type }}{% if event.object_id %} #{{ event.object_id }}{% endif %}</td>
                             <td>{{ event.detail|truncatechars:120 }}</td>
                         </tr>
