@@ -65,8 +65,6 @@ INSTALLED_APPS = [
     'two_factor',
     'two_factor.plugins.phonenumber',
     'phonenumber_field',
-    
-    # Custom Apps
     'filemanager',
 ]
 
