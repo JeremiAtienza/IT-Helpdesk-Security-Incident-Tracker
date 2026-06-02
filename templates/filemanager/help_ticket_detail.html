@@ -53,7 +53,7 @@
                 {% endfor %}
             </ul>
         </div>
-        <div class="card card-shadow p-4">
+        <div class="card card-shadow p-4 mb-4">
             <h5 class="mb-3">Comments</h5>
             <div class="mb-4">
                 {% for comment in comments %}
@@ -62,7 +62,7 @@
                         <strong>{{ comment.author.username }}</strong>
                         <span class="text-muted small">{{ comment.created_at|date:'M d, Y h:i A' }}</span>
                     </div>
-                    <p class="mb-0">{{ comment.message|linebreaks }}</p>
+                    <p class="mb-0">{{ comment.content|linebreaks }}</p>
                 </div>
                 {% empty %}
                 <p class="text-muted">No comments yet.</p>
@@ -80,6 +80,35 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Submit Comment</button>
             </form>
+        </div>
+        <div class="card card-shadow p-4">
+            <h5 class="mb-3">Ticket audit log</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Actor</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                        <tr>
+                            <td class="text-muted small">{{ log.timestamp|date:'M d, Y h:i A' }}</td>
+                            <td>{{ log.actor.username if log.actor else 'System' }}</td>
+                            <td>{{ log.action|capfirst }}</td>
+                            <td>{{ log.detail|truncatechars:120 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-muted text-center">No audit entries found for this ticket.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

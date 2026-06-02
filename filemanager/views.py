@@ -248,6 +248,10 @@ class HelpTicketDetailView(LoginRequiredMixin, FormMixin, DetailView):
         ctx['overdue'] = ticket.is_overdue
         ctx['comments'] = ticket.comments.all()
         ctx['form'] = self.get_form()
+        ctx['audit_logs'] = AuditLog.objects.filter(
+            Q(object_type='Ticket', object_id=ticket.pk) |
+            Q(detail__icontains=f'ticket={ticket.pk}')
+        ).order_by('-timestamp')[:20]
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -390,4 +394,5 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
         ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
         category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
         ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
+        ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
         return ctx
