@@ -379,8 +379,22 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_staff:
-            raise PermissionDenied('Admins only')
-        return super().get(request, *args, **kwargs)
+            return self.handle_no_permission()
+
+        try:
+            return super().get(request, *args, **kwargs)
+        except Exception:
+            logger.exception('Admin dashboard rendering error')
+            import traceback
+            tb = traceback.format_exc()
+            logger.error('ADMIN_DASHBOARD_TRACEBACK:\n%s', tb)
+            try:
+                print('ADMIN_DASHBOARD_TRACEBACK:\n' + tb, flush=True)
+            except Exception:
+                pass
+
+            context = self.get_context_data(error='Unable to load dashboard data. Please verify Render logs and database settings.')
+            return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -404,16 +418,14 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
             ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
-        except Exception as e:
+        except Exception:
             logger.exception('Admin dashboard context error')
-            # Also print full traceback to stdout so it appears in Render Live logs
             import traceback
             tb = traceback.format_exc()
             logger.error('ADMIN_DASHBOARD_TRACEBACK:\n%s', tb)
             try:
                 print('ADMIN_DASHBOARD_TRACEBACK:\n' + tb, flush=True)
             except Exception:
-                # best-effort; don't raise from the error handler
                 pass
 
             ctx['error'] = 'Unable to load dashboard data at this time. Check Render environment variables and database configuration.'

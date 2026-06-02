@@ -105,16 +105,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database Configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    )
 }
 
-# If Railway provides a DATABASE_URL, use PostgreSQL instead
-if 'DATABASE_URL' in os.environ:
+if os.environ.get('DATABASE_URL'):
     DATABASES['default'] = dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
     )
 
 CACHES = {
