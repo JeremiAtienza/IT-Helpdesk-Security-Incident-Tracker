@@ -79,6 +79,25 @@ Render's filesystem is ephemeral, so SQLite is not recommended for production. U
 
 Once deployed, Render will provide a live URL you can share for your final defense.
 
+### Post-deploy: running migrations on Render
+Render does not automatically run Django migrations unless configured. To ensure the database schema is updated (this project added new incident fields and attachments), set a **Release Command** in your Render service settings to run migrations and collect static files during each deploy. Example release command:
+
+```bash
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+```
+
+If you prefer to run migrations manually after a deploy, open the Render web shell for your service and run:
+
+```bash
+python manage.py migrate
+```
+
+Notes:
+- The pushed commits include new migration files under `filemanager/migrations/0008_*.py` and `0009_incidentattachment.py` which must be applied on the production database.
+- Ensure `DATABASE_URL` points to a writable PostgreSQL instance before running migrations.
+- If you encounter issues, check Render logs for `manage.py migrate` output and database connectivity errors.
+
 ## Notes
 - 2FA support is enabled through `django-two-factor-auth`
 - Email notifications currently use the console backend
