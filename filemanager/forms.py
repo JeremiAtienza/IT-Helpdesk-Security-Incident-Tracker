@@ -15,29 +15,37 @@ class VaultFileForm(forms.ModelForm):
 class IncidentTicketForm(forms.ModelForm):
     class Meta:
         model = IncidentTicket
-        fields = ['title', 'description', 'status', 'is_resolved']
+        fields = ['title', 'description', 'category', 'priority', 'status', 'is_resolved']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Incident summary'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describe the issue or security incident'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'priority': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'is_resolved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
+            'category': 'Incident Category',
+            'priority': 'Priority',
             'is_resolved': 'Mark as resolved',
         }
 
 
 class IncidentTicketUpdateForm(forms.ModelForm):
-    """Form for admin to update incident status and assign personnel"""
+    """Form for admin to update incident status, category, priority, and assign personnel"""
     class Meta:
         model = IncidentTicket
-        fields = ['status', 'assignee', 'is_resolved']
+        fields = ['category', 'priority', 'status', 'assignee', 'is_resolved']
         widgets = {
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'priority': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'assignee': forms.Select(attrs={'class': 'form-select'}),
             'is_resolved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
+            'category': 'Incident Category',
+            'priority': 'Priority',
             'status': 'NIST Lifecycle Stage',
             'assignee': 'Assign To',
             'is_resolved': 'Mark as Resolved',

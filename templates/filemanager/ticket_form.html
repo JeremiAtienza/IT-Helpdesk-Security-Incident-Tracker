@@ -28,6 +28,20 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        {{ form.category.label_tag }}
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger small">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.priority.label_tag }}
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                        <div class="text-danger small">{{ form.priority.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         {{ form.status.label_tag }}
                         {{ form.status }}
                         {% if form.status.errors %}

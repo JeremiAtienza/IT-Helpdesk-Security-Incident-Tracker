@@ -59,6 +59,20 @@ class IncidentTicket(models.Model):
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_incidents')
     title = models.CharField(max_length=255)
     description = models.TextField()
+    category = models.ForeignKey('filemanager.Category', on_delete=models.SET_NULL, null=True, blank=True)
+    PRIORITY_LOW = 'LOW'
+    PRIORITY_MEDIUM = 'MEDIUM'
+    PRIORITY_HIGH = 'HIGH'
+    PRIORITY_CRITICAL = 'CRITICAL'
+
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, 'Low'),
+        (PRIORITY_MEDIUM, 'Medium'),
+        (PRIORITY_HIGH, 'High'),
+        (PRIORITY_CRITICAL, 'Critical'),
+    ]
+
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=NIST_STAGE_DETECTION)
     is_resolved = models.BooleanField(default=False)
     source = models.CharField(max_length=64, default='web')
