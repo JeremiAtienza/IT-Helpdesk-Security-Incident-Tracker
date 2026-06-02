@@ -17,6 +17,7 @@ from django.views.generic import (
     View,
 )
 from django.views.generic.edit import FormMixin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -423,6 +424,8 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
             category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
             ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
+            ctx['status_choices'] = Ticket.STATUS_CHOICES
+            ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
         except Exception:
             logger.exception('Admin dashboard context error')
@@ -448,3 +451,30 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['top_categories'] = []
             ctx['recent_audit_events'] = []
         return ctx
+
+
+class AdminTicketActionView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return self.handle_no_permission()
+
+        ticket = get_object_or_404(Ticket, pk=kwargs.get('pk'))
+        status_value = request.POST.get('status')
+        assignee_id = request.POST.get('assignee')
+        resolved_value = request.POST.get('is_resolved')
+
+        valid_statuses = {choice[0] for choice in Ticket.STATUS_CHOICES}
+        if status_value in valid_statuses:
+            ticket.status = status_value
+
+        if assignee_id:
+            user = get_user_model().objects.filter(pk=assignee_id, is_active=True).first()
+            ticket.assignee = user
+        else:
+            ticket.assignee = None
+
+        ticket.is_resolved = bool(resolved_value)
+        ticket.last_updated_by = request.user
+        ticket.save()
+
+        return HttpResponseRedirect(reverse('admin-dashboard'))
