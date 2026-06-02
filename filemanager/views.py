@@ -410,7 +410,7 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['open_tickets'] = IncidentTicket.objects.filter(is_resolved=False).count()
             ctx['resolved_tickets'] = IncidentTicket.objects.filter(is_resolved=True).count()
             ctx['recent_tickets'] = IncidentTicket.objects.filter(created_at__gte=timezone.now() - timedelta(days=1)).count()
-            ctx['security_incidents'] = IncidentTicket.objects.filter(is_security_incident=True).count()
+            ctx['security_incidents'] = IncidentTicket.objects.filter(category__is_security=True).count()
             ctx['stale_tickets'] = IncidentTicket.objects.filter(is_resolved=False, updated_at__lt=timezone.now() - timedelta(hours=72)).count()
             resolved = IncidentTicket.objects.filter(is_resolved=True)
             total = 0
