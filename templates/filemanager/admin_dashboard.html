@@ -102,7 +102,13 @@
                         {% for event in recent_audit_events %}
                         <tr>
                             <td class="text-muted small">{{ event.timestamp|date:'M d, Y h:i A' }}</td>
-                            <td>{{ event.actor.username if event.actor else 'System' }}</td>
+                            <td>
+                                {% if event.actor %}
+                                    {{ event.actor.username }}
+                                {% else %}
+                                    System
+                                {% endif %}
+                            </td>
                             <td>{{ event.action|replace:'_',' '|capfirst }}</td>
                             <td>{{ event.object_type }}{% if event.object_id %} #{{ event.object_id }}{% endif %}</td>
                             <td>{{ event.detail|truncatechars:120 }}</td>

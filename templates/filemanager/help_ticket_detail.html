@@ -97,7 +97,13 @@
                         {% for log in audit_logs %}
                         <tr>
                             <td class="text-muted small">{{ log.timestamp|date:'M d, Y h:i A' }}</td>
-                            <td>{{ log.actor.username if log.actor else 'System' }}</td>
+                            <td>
+                                {% if log.actor %}
+                                    {{ log.actor.username }}
+                                {% else %}
+                                    System
+                                {% endif %}
+                            </td>
                             <td>{{ log.action|capfirst }}</td>
                             <td>{{ log.detail|truncatechars:120 }}</td>
                         </tr>
