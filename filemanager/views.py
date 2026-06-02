@@ -406,6 +406,16 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
         except Exception as e:
             logger.exception('Admin dashboard context error')
+            # Also print full traceback to stdout so it appears in Render Live logs
+            import traceback
+            tb = traceback.format_exc()
+            logger.error('ADMIN_DASHBOARD_TRACEBACK:\n%s', tb)
+            try:
+                print('ADMIN_DASHBOARD_TRACEBACK:\n' + tb, flush=True)
+            except Exception:
+                # best-effort; don't raise from the error handler
+                pass
+
             ctx['error'] = 'Unable to load dashboard data at this time.'
             # provide safe empty defaults so template renders
             ctx.setdefault('open_tickets', 0)
