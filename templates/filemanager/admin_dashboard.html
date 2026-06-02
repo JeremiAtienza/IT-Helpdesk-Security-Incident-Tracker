@@ -111,7 +111,7 @@
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="small text-muted">Priority: {{ ticket.get_priority_display }}</div>
-                            <div class="small text-muted">Category: {{ ticket.category.name if ticket.category else 'None' }}</div>
+                            <div class="small text-muted">Category: {% if ticket.category %}{{ ticket.category.name }}{% else %}None{% endif %}</div>
                         </div>
                         <div class="col-6 col-md-2">
                             <button type="submit" class="btn btn-sm btn-primary w-100">Save</button>
