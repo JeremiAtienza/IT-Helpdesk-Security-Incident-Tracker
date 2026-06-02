@@ -423,7 +423,11 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['live_tickets'] = IncidentTicket.objects.filter(is_resolved=False).order_by('-created_at')[:10]
             ctx['status_counts'] = IncidentTicket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
             ctx['source_counts'] = IncidentTicket.objects.values('source').annotate(count=models.Count('id')).order_by('-count')[:10]
-            ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10] if item['category__name']]
+            ctx['top_categories'] = [
+                (Category.objects.filter(name=item['category__name']).first(), item['count'])
+                for item in IncidentTicket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
+                if item['category__name']
+            ]
             ctx['status_choices'] = IncidentTicket.STATUS_CHOICES
             ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
@@ -441,13 +445,13 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             # provide safe empty defaults so template renders
             ctx['open_tickets'] = 0
             ctx['resolved_tickets'] = 0
-            ctx['high_priority'] = 0
-            ctx['critical_tickets'] = 0
-            ctx['overdue_tickets'] = 0
+            ctx['recent_tickets'] = 0
+            ctx['security_incidents'] = 0
+            ctx['stale_tickets'] = 0
             ctx['avg_resolution_hours'] = None
             ctx['live_tickets'] = []
             ctx['status_counts'] = []
-            ctx['priority_counts'] = []
+            ctx['source_counts'] = []
             ctx['top_categories'] = []
             ctx['recent_audit_events'] = []
         return ctx
