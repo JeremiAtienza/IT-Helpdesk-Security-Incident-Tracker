@@ -384,23 +384,39 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['open_tickets'] = Ticket.objects.exclude(status=Ticket.STATUS_RESOLVED).count()
-        ctx['resolved_tickets'] = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED).count()
-        ctx['high_priority'] = Ticket.objects.filter(priority=Ticket.PRIORITY_HIGH).count()
-        ctx['critical_tickets'] = Ticket.objects.filter(priority=Ticket.PRIORITY_CRITICAL).count()
-        ctx['overdue_tickets'] = Ticket.objects.filter(sla_due__lt=timezone.now(), status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).count()
-        resolved = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED)
-        total = 0
-        count = 0
-        for t in resolved:
-            if t.updated_at and t.created_at:
-                total += (t.updated_at - t.created_at).total_seconds()
-                count += 1
-        ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
-        ctx['live_tickets'] = Ticket.objects.filter(status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).order_by('-created_at')[:10]
-        ctx['status_counts'] = Ticket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
-        ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
-        category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
-        ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
-        ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
+        try:
+            ctx['open_tickets'] = Ticket.objects.exclude(status=Ticket.STATUS_RESOLVED).count()
+            ctx['resolved_tickets'] = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED).count()
+            ctx['high_priority'] = Ticket.objects.filter(priority=Ticket.PRIORITY_HIGH).count()
+            ctx['critical_tickets'] = Ticket.objects.filter(priority=Ticket.PRIORITY_CRITICAL).count()
+            ctx['overdue_tickets'] = Ticket.objects.filter(sla_due__lt=timezone.now(), status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).count()
+            resolved = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED)
+            total = 0
+            count = 0
+            for t in resolved:
+                if t.updated_at and t.created_at:
+                    total += (t.updated_at - t.created_at).total_seconds()
+                    count += 1
+            ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
+            ctx['live_tickets'] = Ticket.objects.filter(status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).order_by('-created_at')[:10]
+            ctx['status_counts'] = Ticket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
+            ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
+            category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
+            ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
+            ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
+        except Exception as e:
+            logger.exception('Admin dashboard context error')
+            ctx['error'] = 'Unable to load dashboard data at this time.'
+            # provide safe empty defaults so template renders
+            ctx.setdefault('open_tickets', 0)
+            ctx.setdefault('resolved_tickets', 0)
+            ctx.setdefault('high_priority', 0)
+            ctx.setdefault('critical_tickets', 0)
+            ctx.setdefault('overdue_tickets', 0)
+            ctx.setdefault('avg_resolution_hours', None)
+            ctx.setdefault('live_tickets', [])
+            ctx.setdefault('status_counts', [])
+            ctx.setdefault('priority_counts', [])
+            ctx.setdefault('top_categories', [])
+            ctx.setdefault('recent_audit_events', [])
         return ctx
