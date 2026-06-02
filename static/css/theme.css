@@ -1,0 +1,201 @@
+:root {
+    --brand: #2153ff;
+    --brand-dark: #1b43d1;
+    --brand-soft: #e8f0ff;
+    --surface: #ffffff;
+    --surface-alt: #f7fbff;
+    --text-primary: #112d4e;
+    --text-secondary: #5c7080;
+    --card-border: rgba(17, 40, 75, 0.08);
+    --shadow: 0 20px 55px rgba(15, 33, 70, 0.10);
+}
+
+* {
+    transition: all 0.25s ease;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top left, rgba(33, 83, 255, 0.12), transparent 26%),
+                linear-gradient(180deg, #f6f9ff 0%, #eef5fb 100%);
+    color: var(--text-primary);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 95% 20%, rgba(33, 83, 255, 0.12), transparent 16%),
+                radial-gradient(circle at 10% 90%, rgba(44, 197, 255, 0.10), transparent 16%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.navbar {
+    background: rgba(17, 37, 103, 0.96) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.navbar-brand {
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    font-size: 1.1rem;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.90) !important;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: #ffffff !important;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-primary {
+    background-image: linear-gradient(135deg, var(--brand), #2f7dff);
+    border: none;
+    box-shadow: 0 14px 34px rgba(33, 83, 255, 0.18);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-image: linear-gradient(135deg, #1b5fe0, var(--brand-dark));
+    border-color: transparent;
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.card {
+    border: 1px solid var(--card-border);
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: var(--shadow);
+}
+
+.card-shadow {
+    box-shadow: var(--shadow);
+}
+
+.page-section {
+    padding: 3rem 0;
+}
+
+.hero-title {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-size: clamp(2.2rem, 2.6vw, 3.2rem);
+    line-height: 1.05;
+}
+
+.hero-subtitle,
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.form-control,
+.form-select,
+textarea {
+    border-radius: 1rem;
+    border: 1px solid rgba(15, 33, 70, 0.12);
+    box-shadow: none;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+    border-color: rgba(33, 83, 255, 0.28);
+    box-shadow: 0 0 0 0.25rem rgba(33, 83, 255, 0.12);
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+}
+
+.table thead tr {
+    border-bottom: none;
+}
+
+.table tbody tr {
+    background: rgba(248, 249, 255, 0.95);
+    border: 1px solid rgba(15, 33, 70, 0.08);
+    border-radius: 1rem;
+}
+
+.table tbody tr td,
+.table tbody tr th {
+    border: none;
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(33, 83, 255, 0.04);
+}
+
+.list-group-item {
+    background: transparent;
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.list-group-item + .list-group-item {
+    margin-top: 0.85rem;
+}
+
+.badge.bg-primary,
+.badge.bg-danger,
+.badge.bg-success,
+.badge.bg-warning {
+    border-radius: 0.85rem;
+    padding: 0.55em 0.95em;
+    font-size: 0.85rem;
+}
+
+.alert {
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.page-section > .container {
+    position: relative;
+}
+
+.fade-up {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: fadeUp 0.7s ease forwards;
+}
+
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 767px) {
+    .hero-title {
+        font-size: 2.1rem;
+    }
+}
