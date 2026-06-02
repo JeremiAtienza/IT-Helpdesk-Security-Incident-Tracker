@@ -33,8 +33,24 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-fe5^92j@h8ynz0e5219v-##v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-# Allow Railway or Render to host your app
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+# Normalize host values for ALLOWED_HOSTS and allow either ALLOWED_HOSTS or ALLOWED_HOST env keys.
+def _normalize_hosts(values):
+    cleaned = []
+    for value in values:
+        if not value:
+            continue
+        host = value.strip().rstrip('/')
+        host = host.replace('https://', '').replace('http://', '')
+        if host:
+            cleaned.append(host)
+    return cleaned
+
+ALLOWED_HOSTS = _normalize_hosts(
+    env.list('ALLOWED_HOSTS', default=env.list('ALLOWED_HOST', default=['*']))
+)
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.railway.app', 'https://*.onrender.com'])
 
 

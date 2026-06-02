@@ -35,6 +35,7 @@ from .models import VaultFile, IncidentTicket, Ticket, TicketAttachment, Categor
 from .forms import (
     VaultFileForm,
     IncidentTicketForm,
+    IncidentTicketUpdateForm,
     TicketBulkCloseForm,
     CustomUserCreationForm,
     TicketForm,
@@ -136,9 +137,14 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
 
 class TicketUpdateView(LoginRequiredMixin, UpdateView):
     model = IncidentTicket
-    form_class = IncidentTicketForm
     template_name = 'filemanager/ticket_form.html'
     success_url = reverse_lazy('ticket-list')
+
+    def get_form_class(self):
+        """Use enhanced form for admins with assignee field"""
+        if self.request.user.is_staff:
+            return IncidentTicketUpdateForm
+        return IncidentTicketForm
 
     def get_queryset(self):
         if self.request.user.is_staff:

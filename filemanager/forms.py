@@ -26,6 +26,23 @@ class IncidentTicketForm(forms.ModelForm):
             'is_resolved': 'Mark as resolved',
         }
 
+
+class IncidentTicketUpdateForm(forms.ModelForm):
+    """Form for admin to update incident status and assign personnel"""
+    class Meta:
+        model = IncidentTicket
+        fields = ['status', 'assignee', 'is_resolved']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'assignee': forms.Select(attrs={'class': 'form-select'}),
+            'is_resolved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'status': 'NIST Lifecycle Stage',
+            'assignee': 'Assign To',
+            'is_resolved': 'Mark as Resolved',
+        }
+
 class TicketBulkCloseForm(forms.Form):
     ticket_ids = forms.ModelMultipleChoiceField(
         queryset=IncidentTicket.objects.none(),
