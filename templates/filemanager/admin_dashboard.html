@@ -87,6 +87,8 @@
                         <div>
                             <strong>{{ ticket.title }}</strong><br>
                             <small class="text-muted">{{ ticket.get_status_display }} · {{ ticket.source }}{% if ticket.assignee %} · Assigned to {{ ticket.assignee.username }}{% endif %}</small>
+                            <div class="small mt-1">
+                                Severity: {{ ticket.severity_score|default:'-' }} · SLA Due: {% if ticket.sla_due %}{{ ticket.sla_due|date:'M d, Y H:i' }}{% else %}-{% endif %} · Escalation: {{ ticket.escalation_level }}</div>
                         </div>
                         <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-sm btn-outline-secondary">Open</a>
                     </div>
@@ -112,6 +114,19 @@
                         <div class="col-6 col-md-2">
                             <div class="small text-muted">Priority: {{ ticket.get_priority_display }}</div>
                             <div class="small text-muted">Category: {% if ticket.category %}{{ ticket.category.name }}{% else %}None{% endif %}</div>
+                            <div class="small text-muted">Impact: {{ ticket.impact_level|default:'-' }}</div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <details>
+                                <summary class="small">Timeline (latest events)</summary>
+                                <ul class="list-unstyled mt-2 small mb-0">
+                                    {% for ev in ticket.events.all|slice:":3" %}
+                                    <li class="mb-1"><strong>{% if ev.actor %}{{ ev.actor.username }}{% else %}system{% endif %}</strong> — {{ ev.action|capfirst }} <span class="text-muted">· {{ ev.timestamp|date:'M d H:i' }}</span><div class="text-muted">{{ ev.note|truncatechars:140 }}</div></li>
+                                    {% empty %}
+                                    <li class="text-muted">No events yet.</li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
                         </div>
                         <div class="col-6 col-md-2">
                             <button type="submit" class="btn btn-sm btn-primary w-100">Save</button>

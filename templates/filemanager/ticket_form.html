@@ -42,17 +42,39 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        {{ form.status.label_tag }}
-                        {{ form.status }}
-                        {% if form.status.errors %}
-                        <div class="text-danger small">{{ form.status.errors }}</div>
+                        {% if form.impact_level %}
+                        {{ form.impact_level.label_tag }}
+                        {{ form.impact_level }}
+                        {% if form.impact_level.errors %}
+                        <div class="text-danger small">{{ form.impact_level.errors }}</div>
+                        {% endif %}
                         {% endif %}
                     </div>
-                    <div class="form-check mb-4">
-                        {{ form.is_resolved }}
-                        {{ form.is_resolved.label_tag }}
-                        {% if form.is_resolved.errors %}
-                        <div class="text-danger small">{{ form.is_resolved.errors }}</div>
+                    <div class="mb-3">
+                        {% if form.affected_assets %}
+                        {{ form.affected_assets.label_tag }}
+                        {{ form.affected_assets }}
+                        {% if form.affected_assets.errors %}
+                        <div class="text-danger small">{{ form.affected_assets.errors }}</div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if form.iocs %}
+                        {{ form.iocs.label_tag }}
+                        {{ form.iocs }}
+                        {% if form.iocs.errors %}
+                        <div class="text-danger small">{{ form.iocs.errors }}</div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if form.evidence_summary %}
+                        {{ form.evidence_summary.label_tag }}
+                        {{ form.evidence_summary }}
+                        {% if form.evidence_summary.errors %}
+                        <div class="text-danger small">{{ form.evidence_summary.errors }}</div>
+                        {% endif %}
                         {% endif %}
                     </div>
                     <button type="submit" class="btn btn-primary">{% if object %}Save Changes{% else %}Submit Ticket{% endif %}</button>

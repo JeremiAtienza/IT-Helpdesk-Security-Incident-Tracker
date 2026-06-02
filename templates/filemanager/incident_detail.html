@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <h2 class="h4">Incident: {{ incident.title }}</h2>
+                <p class="text-muted mb-1">Reported by: {{ incident.reporter.username if incident.reporter else 'Unknown' }} · Source: {{ incident.source }}</p>
+                <p class="mb-1">
+                    <strong>Priority:</strong> {{ incident.get_priority_display }} ·
+                    <strong>Category:</strong> {% if incident.category %}{{ incident.category.name }}{% else %}None{% endif %} ·
+                    <strong>Severity:</strong> {{ incident.severity_score|default:'-' }} ·
+                    <strong>SLA Due:</strong> {% if incident.sla_due %}{{ incident.sla_due|date:'M d, Y H:i' }}{% else %}-{% endif %}
+                </p>
+                <hr>
+                <h5 class="mb-2">Description</h5>
+                <div class="mb-3">{{ incident.description|linebreaks }}</div>
+                <h5 class="mb-2">Evidence & Affected Assets</h5>
+                <div class="mb-3">
+                    <div><strong>Impact:</strong> {{ incident.impact_level|default:'-' }}</div>
+                    <div><strong>Affected:</strong> {{ incident.affected_assets|default:'-' }}</div>
+                    <div><strong>IOCs:</strong> {{ incident.iocs|default:'-' }}</div>
+                    <div><strong>Summary:</strong> {{ incident.evidence_summary|default:'-' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <h5>Timeline</h5>
+                {% if events %}
+                <ul class="list-group list-group-flush">
+                    {% for ev in events %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{% if ev.actor %}{{ ev.actor.username }}{% else %}system{% endif %}</strong>
+                                <div class="text-muted small">{{ ev.action|capfirst }}</div>
+                                <div class="mt-1">{{ ev.note }}</div>
+                            </div>
+                            <div class="text-muted small">{{ ev.timestamp|date:'M d, Y H:i' }}</div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-muted">No timeline events yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5>Attachments</h5>
+                {% if attachments %}
+                <ul class="list-group list-group-flush">
+                    {% for att in attachments %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{{ att.file.url }}" target="_blank">{{ att.file.name|basename }}</a>
+                            <div class="text-muted small">uploaded by: {% if att.uploaded_by %}{{ att.uploaded_by.username }}{% else %}system{% endif %}</div>
+                        </div>
+                        <div class="text-muted small">{{ att.uploaded_at|date:'M d, Y H:i' }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-muted">No attachments yet.</div>
+                {% endif %}
+
+                <div class="mt-3">
+                    {% if user.is_authenticated and (user.is_staff or user == incident.reporter) %}
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'incident-attach' incident.pk %}">Upload Attachment</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

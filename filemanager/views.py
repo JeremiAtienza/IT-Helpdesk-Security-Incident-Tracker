@@ -33,7 +33,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import VaultFile, IncidentTicket, Ticket, TicketAttachment, Category, AuditLog, KnowledgeBaseArticle
+from .models import VaultFile, IncidentTicket, Ticket, TicketAttachment, IncidentAttachment, Category, AuditLog, KnowledgeBaseArticle
 from .forms import (
     VaultFileForm,
     IncidentTicketForm,
@@ -42,6 +42,7 @@ from .forms import (
     CustomUserCreationForm,
     TicketForm,
     TicketAttachmentForm,
+    IncidentAttachmentForm,
     TicketCommentForm,
     TicketSearchForm,
     KnowledgeBaseSearchForm,
@@ -380,6 +381,40 @@ class AttachmentUploadView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse('help-ticket-detail', args=[self.object.ticket.pk])
+
+
+class IncidentAttachmentUploadView(LoginRequiredMixin, CreateView):
+    model = IncidentAttachment
+    form_class = IncidentAttachmentForm
+    template_name = 'filemanager/attachment_upload.html'
+
+    def form_valid(self, form):
+        incident_id = self.kwargs.get('pk')
+        incident = get_object_or_404(IncidentTicket, pk=incident_id)
+        form.instance.ticket = incident
+        form.instance.uploaded_by = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('incident-detail', args=[self.object.ticket.pk])
+
+
+class IncidentDetailView(LoginRequiredMixin, DetailView):
+    model = IncidentTicket
+    template_name = 'filemanager/incident_detail.html'
+    context_object_name = 'incident'
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return IncidentTicket.objects.all()
+        return IncidentTicket.objects.filter(reporter=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        incident = self.get_object()
+        ctx['events'] = incident.events.all()
+        ctx['attachments'] = incident.incident_attachments.all()
+        return ctx
 
 
 class AdminDashboardView(LoginRequiredMixin, TemplateView):

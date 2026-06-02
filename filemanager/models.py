@@ -73,6 +73,30 @@ class IncidentTicket(models.Model):
     ]
 
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
+    # New fields for advanced incident handling
+    severity_score = models.PositiveSmallIntegerField(default=0)
+    IMPACT_LOW = 'LOW'
+    IMPACT_MEDIUM = 'MEDIUM'
+    IMPACT_HIGH = 'HIGH'
+    IMPACT_CRITICAL = 'CRITICAL'
+
+    IMPACT_CHOICES = [
+        (IMPACT_LOW, 'Low'),
+        (IMPACT_MEDIUM, 'Medium'),
+        (IMPACT_HIGH, 'High'),
+        (IMPACT_CRITICAL, 'Critical'),
+    ]
+
+    impact_level = models.CharField(max_length=10, choices=IMPACT_CHOICES, default=IMPACT_MEDIUM)
+    # List of affected assets (hosts, IPs, services). Use JSON when available.
+    try:
+        from django.db.models import JSONField as _JSONField
+    except Exception:
+        from django.db.models import TextField as _JSONField
+
+    affected_assets = _JSONField(blank=True, null=True, default=list)
+    iocs = models.TextField(blank=True, default='')
+    evidence_summary = models.TextField(blank=True, default='')
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=NIST_STAGE_DETECTION)
     is_resolved = models.BooleanField(default=False)
     source = models.CharField(max_length=64, default='web')
@@ -80,6 +104,10 @@ class IncidentTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_tickets')
+    # SLA / escalation
+    sla_due = models.DateTimeField(null=True, blank=True)
+    escalation_level = models.PositiveSmallIntegerField(default=0)
+    escalated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -111,6 +139,64 @@ class IncidentTicket(models.Model):
         self.chain_of_custody = f"{self.chain_of_custody}{entry}\n"
         super().save(*args, **kwargs)
         incident_logger.info(entry)
+
+    def compute_severity(self):
+        mapping = {
+            self.PRIORITY_LOW: 10,
+            self.PRIORITY_MEDIUM: 30,
+            self.PRIORITY_HIGH: 70,
+            self.PRIORITY_CRITICAL: 95,
+        }
+        score = mapping.get(self.priority, 0)
+        if self.category and getattr(self.category, 'is_security', False):
+            score = max(score, 60)
+        self.severity_score = score
+
+    def compute_sla_due(self):
+        now = self.created_at or timezone.now()
+        sla_mapping = {
+            self.PRIORITY_LOW: timedelta(days=3),
+            self.PRIORITY_MEDIUM: timedelta(days=2),
+            self.PRIORITY_HIGH: timedelta(hours=24),
+            self.PRIORITY_CRITICAL: timedelta(hours=4),
+        }
+        delta = sla_mapping.get(self.priority, timedelta(days=3))
+        self.sla_due = now + delta
+
+    def assign_based_on_category(self):
+        if self.assignee or not self.category:
+            return
+        assigned = False
+        team_name = getattr(self.category, 'default_assignee_group', '')
+        if team_name:
+            grp = Group.objects.filter(name__iexact=team_name).first()
+            if grp:
+                user = grp.user_set.first()
+                if user:
+                    self.assignee = user
+                    assigned = True
+        if not assigned:
+            name = self.category.name.lower() if self.category else ''
+            if 'password' in name or 'account' in name:
+                grp = Group.objects.filter(name__icontains='account').first()
+            elif 'malware' in name or 'virus' in name or 'security' in name or (self.category and getattr(self.category, 'is_security', False)):
+                grp = Group.objects.filter(name__icontains='security').first()
+            elif 'network' in name:
+                grp = Group.objects.filter(name__icontains='network').first()
+            else:
+                grp = Group.objects.filter(name__icontains='it').first()
+            if grp:
+                user = grp.user_set.first()
+                if user:
+                    self.assignee = user
+
+    def escalate_if_overdue(self):
+        if not self.sla_due:
+            return
+        if timezone.now() > self.sla_due and self.escalation_level < 3:
+            self.escalation_level += 1
+            self.escalated_at = timezone.now()
+            incident_logger.info('Ticket escalated id=%s level=%s', self.pk, self.escalation_level)
 
 
 # --- Ticketing and incident models (expanded) ---
@@ -361,6 +447,30 @@ class AuditLog(models.Model):
         actor = self.actor.username if self.actor else 'system'
         return f"{self.timestamp.isoformat()} {actor} {self.action} {self.object_type}:{self.object_id}"
 
+class IncidentEvent(models.Model):
+    """Timeline events attached to an IncidentTicket for forensic/history purposes."""
+    ticket = models.ForeignKey(IncidentTicket, on_delete=models.CASCADE, related_name='events')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=64, blank=True)
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        who = self.actor.username if self.actor else 'system'
+        return f"{self.timestamp.isoformat()} [{who}] {self.action or 'note'}"
+
+
+class IncidentAttachment(models.Model):
+    ticket = models.ForeignKey(IncidentTicket, on_delete=models.CASCADE, related_name='incident_attachments')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    file = models.FileField(upload_to='incident_attachments/', storage=RawMediaCloudinaryStorage())
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"IncidentAttachment for {self.ticket.pk} by {self.uploaded_by or 'Unknown'}"
 
 class KnowledgeBaseArticle(models.Model):
     title = models.CharField(max_length=255)
@@ -473,6 +583,38 @@ def kb_post_delete(sender, instance, **kwargs):
         object_id=instance.pk,
         detail=f"title={instance.title}",
     )
+
+
+@receiver(post_save, sender=IncidentTicket)
+def incident_ticket_post_save(sender, instance: IncidentTicket, created, **kwargs):
+    # On create: auto-calc severity, SLA, and assign based on category
+    if created:
+        instance.compute_severity()
+        instance.compute_sla_due()
+        instance.assign_based_on_category()
+        # create an initial timeline event
+        IncidentEvent.objects.create(ticket=instance, actor=instance.reporter, action='created', note='Incident created')
+        instance.save(update_fields=['severity_score', 'sla_due', 'assignee'])
+
+    # On update: check SLA breach and escalate
+    else:
+        if instance.sla_due and timezone.now() > instance.sla_due and instance.escalation_level == 0:
+            instance.escalate_if_overdue()
+            instance.save(update_fields=['escalation_level', 'assignee', 'escalated_at'])
+            instance.send_alert(f"Incident {instance.title} escalated due to SLA breach.")
+
+    actor = getattr(instance, 'last_updated_by', None) or instance.reporter
+    AuditLog.objects.create(
+        actor=actor,
+        action='incident_created' if created else 'incident_updated',
+        object_type='IncidentTicket',
+        object_id=instance.pk,
+        detail=f"status={instance.status} priority={instance.priority} assignee={getattr(instance.assignee, 'username', None)} sla_due={instance.sla_due}",
+    )
+
+    # Add a timeline event for updates
+    if not created:
+        IncidentEvent.objects.create(ticket=instance, actor=actor, action='updated', note='Incident updated')
 
 
 @receiver(user_logged_in)

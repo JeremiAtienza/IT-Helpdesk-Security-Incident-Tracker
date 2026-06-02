@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle
+from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle, IncidentAttachment
 
 class VaultFileForm(forms.ModelForm):
     class Meta:
@@ -15,14 +15,16 @@ class VaultFileForm(forms.ModelForm):
 class IncidentTicketForm(forms.ModelForm):
     class Meta:
         model = IncidentTicket
-        fields = ['title', 'description', 'category', 'priority', 'status', 'is_resolved']
+        fields = ['title', 'description', 'category', 'priority', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Incident summary'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describe the issue or security incident'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'is_resolved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'impact_level': forms.Select(attrs={'class': 'form-select'}),
+            'affected_assets': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'List affected hosts/IPs/services (JSON or comma-separated)'}),
+            'iocs': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Indicators of compromise (hashes, domains, IPs)'}),
+            'evidence_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Short evidence summary'}),
         }
         labels = {
             'category': 'Incident Category',
@@ -35,20 +37,20 @@ class IncidentTicketUpdateForm(forms.ModelForm):
     """Form for admin to update incident status, category, priority, and assign personnel"""
     class Meta:
         model = IncidentTicket
-        fields = ['category', 'priority', 'status', 'assignee', 'is_resolved']
+        fields = ['category', 'priority', 'impact_level', 'assignee', 'escalation_level']
         widgets = {
             'category': forms.Select(attrs={'class': 'form-select'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
+            'impact_level': forms.Select(attrs={'class': 'form-select'}),
             'assignee': forms.Select(attrs={'class': 'form-select'}),
-            'is_resolved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'escalation_level': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
         }
         labels = {
             'category': 'Incident Category',
             'priority': 'Priority',
-            'status': 'NIST Lifecycle Stage',
+            'impact_level': 'Impact Level',
             'assignee': 'Assign To',
-            'is_resolved': 'Mark as Resolved',
+            'escalation_level': 'Escalation Level',
         }
 
 class TicketBulkCloseForm(forms.Form):
@@ -99,6 +101,16 @@ class TicketForm(forms.ModelForm):
 class TicketAttachmentForm(forms.ModelForm):
     class Meta:
         model = TicketAttachment
+        fields = ['file']
+        widgets = {
+            'file': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class IncidentAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = IncidentAttachment
+        # set model dynamically below
         fields = ['file']
         widgets = {
             'file': forms.FileInput(attrs={'class': 'form-control'}),
