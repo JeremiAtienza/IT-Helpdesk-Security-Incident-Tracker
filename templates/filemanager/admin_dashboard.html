@@ -14,20 +14,20 @@
 <div class="row g-4 mb-4">
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>Open Tickets</h5>
+            <h5>Open Incidents</h5>
             <p class="display-6 mb-0">{{ open_tickets }}</p>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>Resolved Tickets</h5>
+            <h5>Resolved Incidents</h5>
             <p class="display-6 mb-0">{{ resolved_tickets }}</p>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>Overdue</h5>
-            <p class="display-6 mb-0">{{ overdue_tickets }}</p>
+            <h5>New Last 24h</h5>
+            <p class="display-6 mb-0">{{ recent_tickets }}</p>
         </div>
     </div>
 </div>
@@ -35,19 +35,19 @@
 <div class="row g-4 mb-4">
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>High Priority</h5>
-            <p class="mb-0">{{ high_priority }}</p>
+            <h5>Security Incidents</h5>
+            <p class="mb-0">{{ security_incidents }}</p>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>Critical Incidents</h5>
-            <p class="mb-0">{{ critical_tickets }}</p>
+            <h5>Stale Incidents</h5>
+            <p class="mb-0">{{ stale_tickets }}</p>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="card card-shadow p-4">
-            <h5>Avg Resolution</h5>
+            <h5>Avg Response</h5>
             <p class="mb-0">{{ avg_resolution_hours|default:'N/A' }}</p>
         </div>
     </div>
@@ -86,7 +86,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <strong>{{ ticket.title }}</strong><br>
-                            <small class="text-muted">{{ ticket.get_priority_display }}{% if ticket.assignee %} · Assigned to {{ ticket.assignee.username }}{% endif %}</small>
+                            <small class="text-muted">{{ ticket.get_status_display }} · {{ ticket.source }}{% if ticket.assignee %} · Assigned to {{ ticket.assignee.username }}{% endif %}</small>
                         </div>
                         <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-sm btn-outline-secondary">Open</a>
                     </div>

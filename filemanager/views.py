@@ -1,6 +1,7 @@
 import csv
 import io
 import logging
+from datetime import timedelta
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.urls import reverse_lazy
@@ -406,12 +407,12 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         try:
-            ctx['open_tickets'] = Ticket.objects.exclude(status=Ticket.STATUS_RESOLVED).count()
-            ctx['resolved_tickets'] = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED).count()
-            ctx['high_priority'] = Ticket.objects.filter(priority=Ticket.PRIORITY_HIGH).count()
-            ctx['critical_tickets'] = Ticket.objects.filter(priority=Ticket.PRIORITY_CRITICAL).count()
-            ctx['overdue_tickets'] = Ticket.objects.filter(sla_due__lt=timezone.now(), status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).count()
-            resolved = Ticket.objects.filter(status=Ticket.STATUS_RESOLVED)
+            ctx['open_tickets'] = IncidentTicket.objects.filter(is_resolved=False).count()
+            ctx['resolved_tickets'] = IncidentTicket.objects.filter(is_resolved=True).count()
+            ctx['recent_tickets'] = IncidentTicket.objects.filter(created_at__gte=timezone.now() - timedelta(days=1)).count()
+            ctx['security_incidents'] = IncidentTicket.objects.filter(is_security_incident=True).count()
+            ctx['stale_tickets'] = IncidentTicket.objects.filter(is_resolved=False, updated_at__lt=timezone.now() - timedelta(hours=72)).count()
+            resolved = IncidentTicket.objects.filter(is_resolved=True)
             total = 0
             count = 0
             for t in resolved:
@@ -419,12 +420,11 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                     total += (t.updated_at - t.created_at).total_seconds()
                     count += 1
             ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
-            ctx['live_tickets'] = Ticket.objects.filter(status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).order_by('-created_at')[:10]
-            ctx['status_counts'] = Ticket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
-            ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
-            category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
-            ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
-            ctx['status_choices'] = Ticket.STATUS_CHOICES
+            ctx['live_tickets'] = IncidentTicket.objects.filter(is_resolved=False).order_by('-created_at')[:10]
+            ctx['status_counts'] = IncidentTicket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
+            ctx['source_counts'] = IncidentTicket.objects.values('source').annotate(count=models.Count('id')).order_by('-count')[:10]
+            ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10] if item['category__name']]
+            ctx['status_choices'] = IncidentTicket.STATUS_CHOICES
             ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
         except Exception:
@@ -458,12 +458,12 @@ class AdminTicketActionView(LoginRequiredMixin, View):
         if not request.user.is_staff:
             return self.handle_no_permission()
 
-        ticket = get_object_or_404(Ticket, pk=kwargs.get('pk'))
+        ticket = get_object_or_404(IncidentTicket, pk=kwargs.get('pk'))
         status_value = request.POST.get('status')
         assignee_id = request.POST.get('assignee')
         resolved_value = request.POST.get('is_resolved')
 
-        valid_statuses = {choice[0] for choice in Ticket.STATUS_CHOICES}
+        valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
         if status_value in valid_statuses:
             ticket.status = status_value
 
