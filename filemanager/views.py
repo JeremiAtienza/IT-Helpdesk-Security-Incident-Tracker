@@ -24,8 +24,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Q
 
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from ratelimit.decorators import ratelimit
 from rest_framework import serializers, status
 from rest_framework.response import Response
@@ -295,6 +293,16 @@ class TicketExportCSVView(LoginRequiredMixin, View):
 
 class TicketExportPDFView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.pdfgen import canvas
+        except ImportError:
+            return HttpResponse(
+                'PDF export is unavailable because the reportlab package is not installed.',
+                content_type='text/plain',
+                status=503,
+            )
+
         queryset = Ticket.objects.all() if request.user.is_staff else Ticket.objects.filter(reporter=request.user)
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
