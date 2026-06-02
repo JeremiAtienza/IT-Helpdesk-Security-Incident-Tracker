@@ -5,8 +5,40 @@
         <h1 class="hero-title mb-2">Help Tickets</h1>
         <p class="text-muted">Track active support requests, security incidents, and escalation updates in one central place.</p>
     </div>
-    <a href="{% url 'help-ticket-create' %}" class="btn btn-primary btn-lg mt-3 mt-md-0">Create New Ticket</a>
+    <div class="d-flex flex-column gap-2 align-items-end">
+        <div class="d-flex gap-2">
+            <a href="{% url 'help-ticket-export-csv' %}" class="btn btn-outline-secondary btn-sm">Export CSV</a>
+            <a href="{% url 'help-ticket-export-pdf' %}" class="btn btn-outline-secondary btn-sm">Export PDF</a>
+        </div>
+        <a href="{% url 'help-ticket-create' %}" class="btn btn-primary btn-lg">Create New Ticket</a>
+    </div>
 </div>
+
+{% if search_form %}
+<div class="card card-shadow mb-4 p-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            {{ search_form.query.label_tag }}
+            {{ search_form.query }}
+        </div>
+        <div class="col-md-2">
+            {{ search_form.status.label_tag }}
+            {{ search_form.status }}
+        </div>
+        <div class="col-md-2">
+            {{ search_form.priority.label_tag }}
+            {{ search_form.priority }}
+        </div>
+        <div class="col-md-2">
+            {{ search_form.category.label_tag }}
+            {{ search_form.category }}
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+</div>
+{% endif %}
 
 <div class="row g-4">
     {% for t in tickets %}

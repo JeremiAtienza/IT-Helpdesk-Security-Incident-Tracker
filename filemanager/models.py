@@ -318,6 +318,19 @@ class TicketAttachment(models.Model):
         return f"Attachment for {self.ticket_id} by {self.uploaded_by}"
 
 
+class TicketComment(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comment by {self.author or 'Unknown'} on ticket {self.ticket_id}"
+
+
 class AuditLog(models.Model):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=128)
@@ -411,6 +424,18 @@ def attachment_post_delete(sender, instance, **kwargs):
         object_id=instance.pk,
         detail=f"ticket={instance.ticket.pk} file={instance.file.name}",
     )
+
+
+@receiver(post_save, sender=TicketComment)
+def comment_post_save(sender, instance, created, **kwargs):
+    if created:
+        AuditLog.objects.create(
+            actor=instance.author,
+            action='comment_added',
+            object_type='TicketComment',
+            object_id=instance.pk,
+            detail=f"ticket={instance.ticket.pk} comment={instance.content[:80]}",
+        )
 
 
 @receiver(post_save, sender=KnowledgeBaseArticle)

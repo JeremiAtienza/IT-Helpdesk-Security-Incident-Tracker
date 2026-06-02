@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import VaultFile, IncidentTicket, Ticket, TicketAttachment, KnowledgeBaseArticle
+from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle
 
 class VaultFileForm(forms.ModelForm):
     class Meta:
@@ -78,6 +78,38 @@ class TicketAttachmentForm(forms.ModelForm):
         widgets = {
             'file': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+
+class TicketCommentForm(forms.ModelForm):
+    class Meta:
+        model = TicketComment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Add a comment or note...'}),
+        }
+        labels = {
+            'content': 'Comment',
+        }
+
+
+class TicketSearchForm(forms.Form):
+    query = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Search tickets...'}))
+    status = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Statuses')] + Ticket.STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    priority = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Priorities')] + Ticket.PRIORITY_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    category = forms.ModelChoiceField(
+        required=False,
+        queryset=Category.objects.all(),
+        empty_label='All Categories',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
 
 
 class KnowledgeBaseSearchForm(forms.Form):

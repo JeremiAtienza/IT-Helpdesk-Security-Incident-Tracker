@@ -1,12 +1,31 @@
+import csv
+import io
 import logging
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
+from django.views.generic import (
+    ListView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+    FormView,
+    DetailView,
+    TemplateView,
+    View,
+)
+from django.views.generic.edit import FormMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
+from django.db.models import Q
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from ratelimit.decorators import ratelimit
 from rest_framework import serializers, status
 from rest_framework.response import Response
@@ -15,12 +34,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import VaultFile, IncidentTicket, Ticket, TicketAttachment, Category, AuditLog, KnowledgeBaseArticle
-from .forms import VaultFileForm, IncidentTicketForm, TicketBulkCloseForm, CustomUserCreationForm, TicketForm, TicketAttachmentForm, KnowledgeBaseSearchForm
-from django.views.generic import DetailView, TemplateView
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.db.models import Q
+from .forms import (
+    VaultFileForm,
+    IncidentTicketForm,
+    TicketBulkCloseForm,
+    CustomUserCreationForm,
+    TicketForm,
+    TicketAttachmentForm,
+    TicketCommentForm,
+    TicketSearchForm,
+    KnowledgeBaseSearchForm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -160,9 +184,36 @@ class HelpTicketListView(LoginRequiredMixin, ListView):
     context_object_name = 'tickets'
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Ticket.objects.all()
-        return Ticket.objects.filter(reporter=self.request.user)
+        queryset = Ticket.objects.all() if self.request.user.is_staff else Ticket.objects.filter(reporter=self.request.user)
+        query = self.request.GET.get('query', '').strip()
+        status = self.request.GET.get('status', '')
+        priority = self.request.GET.get('priority', '')
+        category_id = self.request.GET.get('category', '')
+
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(category__name__icontains=query)
+            )
+        if status:
+            queryset = queryset.filter(status=status)
+        if priority:
+            queryset = queryset.filter(priority=priority)
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['search_form'] = TicketSearchForm(initial={
+            'query': self.request.GET.get('query', ''),
+            'status': self.request.GET.get('status', ''),
+            'priority': self.request.GET.get('priority', ''),
+            'category': self.request.GET.get('category', ''),
+        })
+        ctx['categories'] = Category.objects.all()
+        return ctx
 
 
 class HelpTicketCreateView(LoginRequiredMixin, CreateView):
@@ -179,10 +230,11 @@ class HelpTicketCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class HelpTicketDetailView(LoginRequiredMixin, DetailView):
+class HelpTicketDetailView(LoginRequiredMixin, FormMixin, DetailView):
     model = Ticket
     template_name = 'filemanager/help_ticket_detail.html'
     context_object_name = 'ticket'
+    form_class = TicketCommentForm
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -194,7 +246,75 @@ class HelpTicketDetailView(LoginRequiredMixin, DetailView):
         ticket = self.get_object()
         ctx['suggestion'] = ticket.get_suggestion()
         ctx['overdue'] = ticket.is_overdue
+        ctx['comments'] = ticket.comments.all()
+        ctx['form'] = self.get_form()
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+    def form_valid(self, form):
+        comment = form.save(commit=False)
+        comment.ticket = self.get_object()
+        comment.author = self.request.user
+        comment.save()
+        return HttpResponseRedirect(self.request.path_info)
+
+
+class TicketExportCSVView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        queryset = Ticket.objects.all() if request.user.is_staff else Ticket.objects.filter(reporter=request.user)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="help_tickets.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Title', 'Reporter', 'Assignee', 'Priority', 'Status', 'Category', 'SLA Due', 'Escalation Level', 'Created At', 'Updated At'])
+        for ticket in queryset:
+            writer.writerow([
+                ticket.pk,
+                ticket.title,
+                ticket.reporter.username if ticket.reporter else '',
+                ticket.assignee.username if ticket.assignee else '',
+                ticket.get_priority_display(),
+                ticket.get_status_display(),
+                ticket.category.name if ticket.category else '',
+                ticket.sla_due.isoformat() if ticket.sla_due else '',
+                ticket.escalation_level,
+                ticket.created_at.isoformat(),
+                ticket.updated_at.isoformat(),
+            ])
+        return response
+
+
+class TicketExportPDFView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        queryset = Ticket.objects.all() if request.user.is_staff else Ticket.objects.filter(reporter=request.user)
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        y = height - 72
+        p.setFont('Helvetica-Bold', 14)
+        p.drawString(72, y, 'Help Ticket Export')
+        y -= 36
+        p.setFont('Helvetica', 10)
+        for ticket in queryset[:30]:
+            p.drawString(72, y, f"#{ticket.pk} {ticket.title} ({ticket.get_status_display()})")
+            y -= 14
+            p.drawString(90, y, f"Priority: {ticket.get_priority_display()} | Assignee: {ticket.assignee.username if ticket.assignee else 'Unassigned'}")
+            y -= 14
+            p.drawString(90, y, f"Category: {ticket.category.name if ticket.category else 'None'} | SLA Due: {ticket.sla_due:%Y-%m-%d %H:%M}" if ticket.sla_due else "Category: None")
+            y -= 28
+            if y < 72:
+                p.showPage()
+                y = height - 72
+        p.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="help_tickets.pdf"'
+        return response
 
 
 class KnowledgeBaseListView(LoginRequiredMixin, ListView):
@@ -266,6 +386,8 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 count += 1
         ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
         ctx['live_tickets'] = Ticket.objects.filter(status__in=[Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]).order_by('-created_at')[:10]
+        ctx['status_counts'] = Ticket.objects.values('status').annotate(count=models.Count('id')).order_by('-count')
+        ctx['priority_counts'] = Ticket.objects.values('priority').annotate(count=models.Count('id')).order_by('-count')
         category_counts = Ticket.objects.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
         ctx['top_categories'] = [(Category.objects.filter(name=item['category__name']).first(), item['count']) for item in category_counts if item['category__name']]
         return ctx

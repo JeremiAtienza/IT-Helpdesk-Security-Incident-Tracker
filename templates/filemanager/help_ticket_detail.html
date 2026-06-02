@@ -40,7 +40,7 @@
                 <a href="{% url 'help-ticket-list' %}" class="btn btn-link">Back to tickets</a>
             </div>
         </div>
-        <div class="card card-shadow p-4">
+        <div class="card card-shadow p-4 mb-4">
             <h5 class="mb-3">Attachments</h5>
             <ul class="list-group list-group-flush">
                 {% for a in ticket.attachments.all %}
@@ -52,6 +52,34 @@
                 <li class="list-group-item text-muted">No attachments</li>
                 {% endfor %}
             </ul>
+        </div>
+        <div class="card card-shadow p-4">
+            <h5 class="mb-3">Comments</h5>
+            <div class="mb-4">
+                {% for comment in comments %}
+                <div class="border rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>{{ comment.author.username }}</strong>
+                        <span class="text-muted small">{{ comment.created_at|date:'M d, Y h:i A' }}</span>
+                    </div>
+                    <p class="mb-0">{{ comment.message|linebreaks }}</p>
+                </div>
+                {% empty %}
+                <p class="text-muted">No comments yet.</p>
+                {% endfor %}
+            </div>
+            <h6 class="mb-3">Add a comment</h6>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.content.label_tag }}
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="text-danger small">{{ form.content.errors }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
         </div>
     </div>
 </div>
