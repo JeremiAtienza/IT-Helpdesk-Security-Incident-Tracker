@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card card-shadow p-5">
+    <div class="mb-4">
+        <h1 class="hero-title">{{ article.title }}</h1>
+        <p class="text-muted">Published on {{ article.created_at|date:'M d, Y \a\t h:i A' }}</p>
+    </div>
+    <div class="fs-5 text-secondary">{{ article.content|linebreaks }}</div>
+    <div class="mt-5">
+        <a href="{% url 'knowledgebase-list' %}" class="btn btn-outline-primary">Back to Knowledge Base</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h4 mb-3">Bulk Close Resolved Tickets</h2>
+                <p class="text-muted">Select the resolved tickets that should be moved into the Recovery stage.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.ticket_ids.label_tag }}
+                        {{ form.ticket_ids }}
+                        {% if form.ticket_ids.errors %}
+                        <div class="text-danger small">{{ form.ticket_ids.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Close Selected</button>
+                        <a href="{% url 'ticket-list' %}" class="btn btn-link">Back to Tickets</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

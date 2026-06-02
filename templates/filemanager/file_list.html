@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="h3 mb-0 text-gray-800">Your Files</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">File Title</th>
+                        <th>Upload Date</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td class="ps-4 fw-semibold text-dark">{{ file.title }}</td>
+                        <td class="text-muted">{{ file.uploaded_at|date:"M d, Y, h:i A" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group" role="group">
+                                <a href="{{ file.document.url }}" class="btn btn-outline-primary btn-sm" target="_blank">View</a>
+                                <a href="{% url 'file-edit' file.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                                <a href="{% url 'file-delete' file.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted">
+                            No files uploaded yet. Time to add something!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

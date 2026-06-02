@@ -1,0 +1,4 @@
+2026-06-01 16:50:39,479 INFO incident_chain 2026-06-01T08:50:39.444546+00:00 user=testuser changes=created
+2026-06-01 16:55:51,436 INFO incident_chain 2026-06-01T08:55:51.415937+00:00 user=testuser changes=status:DETECTION->CONTAINMENT
+2026-06-01 22:35:26,867 INFO incident_chain 2026-06-01T14:35:26.856960+00:00 user=admin changes=no_change
+2026-06-01 22:37:05,438 INFO incident_chain 2026-06-01T14:37:05.431774+00:00 user=tester changes=created

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="hero-title mb-2">Knowledge Base</h1>
+        <p class="text-muted">Search documentation, past incident reports, and secure workflows.</p>
+    </div>
+    <form class="d-flex" method="get" role="search">
+        {{ search_form.query }}
+        <button class="btn btn-primary ms-2" type="submit">Search</button>
+    </form>
+</div>
+
+<div class="row g-4">
+    {% for article in articles %}
+    <div class="col-12 col-md-6">
+        <div class="card card-shadow p-4 h-100">
+            <h5 class="mb-2"><a class="text-decoration-none" href="{% url 'knowledgebase-detail' article.pk %}">{{ article.title }}</a></h5>
+            <p class="text-muted small mb-3">Published {{ article.created_at|date:'M d, Y' }}</p>
+            <p class="mb-0 text-secondary">{{ article.content|truncatechars:140 }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card card-shadow p-4 text-center">
+            <h5 class="mb-2">No help articles available</h5>
+            <p class="text-muted">Use the admin panel to add useful documentation for your team.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

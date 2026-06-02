@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="h3 mb-0 text-gray-800">Security Incident Tracker</h2>
+        <p class="text-muted">NIST stages are used as ticket status values. Staff users can bulk close resolved incidents.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'ticket-create' %}" class="btn btn-primary">Report New Incident</a>
+        {% if user.is_staff %}
+        <a href="{% url 'ticket-bulk-close' %}" class="btn btn-secondary ms-2">Bulk Close Resolved</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Title</th>
+                        <th>Status</th>
+                        <th>Resolved</th>
+                        <th>Reporter</th>
+                        <th>Updated</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td class="ps-4 fw-semibold text-dark">{{ ticket.title }}</td>
+                        <td>
+                            <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
+                        </td>
+                        <td>
+                            {% if ticket.is_resolved %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if ticket.reporter %}{{ ticket.reporter.username }}{% else %}Unknown{% endif %}</td>
+                        <td class="text-muted">{{ ticket.updated_at|date:"M d, Y, h:i A" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            No incident tickets found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

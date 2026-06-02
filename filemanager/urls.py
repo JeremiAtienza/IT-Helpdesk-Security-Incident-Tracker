@@ -1,0 +1,47 @@
+from django.urls import path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import (
+    FileListView,
+    FileUploadView,
+    SignUpView,
+    FileUpdateView,
+    FileDeleteView,
+    TicketListView,
+    TicketCreateView,
+    TicketUpdateView,
+    TicketBulkCloseView,
+    IncidentTicketCreateAPIView,
+    HelpTicketListView,
+    HelpTicketCreateView,
+    HelpTicketDetailView,
+    AttachmentUploadView,
+    AdminDashboardView,
+    KnowledgeBaseListView,
+    KnowledgeBaseDetailView,
+)
+
+urlpatterns = [
+    path('', FileListView.as_view(), name='file-list'),
+    path('upload/', FileUploadView.as_view(), name='file-upload'),
+    path('signup/', SignUpView.as_view(), name='signup'),
+
+    path('tickets/', TicketListView.as_view(), name='ticket-list'),
+    path('tickets/new/', TicketCreateView.as_view(), name='ticket-create'),
+    path('tickets/<int:pk>/edit/', TicketUpdateView.as_view(), name='ticket-edit'),
+    path('tickets/bulk-close/', TicketBulkCloseView.as_view(), name='ticket-bulk-close'),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/tickets/', IncidentTicketCreateAPIView.as_view(), name='api-ticket-create'),
+
+    # New help-ticket routes
+    path('help/tickets/', HelpTicketListView.as_view(), name='help-ticket-list'),
+    path('help/tickets/new/', HelpTicketCreateView.as_view(), name='help-ticket-create'),
+    path('help/tickets/<int:pk>/', HelpTicketDetailView.as_view(), name='help-ticket-detail'),
+    path('help/tickets/<int:pk>/attach/', AttachmentUploadView.as_view(), name='help-ticket-attach'),
+    path('help/kb/', KnowledgeBaseListView.as_view(), name='knowledgebase-list'),
+    path('help/kb/<int:pk>/', KnowledgeBaseDetailView.as_view(), name='knowledgebase-detail'),
+
+    path('file/<int:pk>/edit/', FileUpdateView.as_view(), name='file-edit'),
+    path('file/<int:pk>/delete/', FileDeleteView.as_view(), name='file-delete'),
+]
