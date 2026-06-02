@@ -98,6 +98,24 @@ Notes:
 - Ensure `DATABASE_URL` points to a writable PostgreSQL instance before running migrations.
 - If you encounter issues, check Render logs for `manage.py migrate` output and database connectivity errors.
 
+### Seed demo data (categories, groups, KB articles)
+After deploying, optionally seed the database with categories, groups, and knowledge base articles to demo the app. Run via Render web shell:
+
+```bash
+python manage.py seed_data
+```
+
+This populates:
+- **Groups**: IT Support Team, Security Team, Account Support Team, Network Administrator, Admin
+- **Categories**: Password Compromise, Malware, Phishing, Unauthorized Access, Network Attack, Data Breach, Account Lockout, VPN Connectivity (each with default assignee group)
+- **KB Articles** (5 runbooks): Password Compromise Recovery, Phishing Email Response, Malware Incident Response, Account Lockout Troubleshooting, Unauthorized Access Detection
+
+Alternatively, add it to your Release Command:
+
+```bash
+python manage.py migrate --noinput && python manage.py seed_data
+```
+
 ## Notes
 - 2FA support is enabled through `django-two-factor-auth`
 - Email notifications currently use the console backend
