@@ -21,3 +21,11 @@ try:
     call_command('migrate', '--noinput', verbosity=0)
 except Exception as e:
     print(f"Migration error (non-blocking): {e}")
+# Create default admin user if it doesn't exist
+try:
+    from django.contrib.auth.models import User
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+        print("Created default admin user: admin / admin123")
+except Exception as e:
+    print(f"User creation error (non-blocking): {e}")
