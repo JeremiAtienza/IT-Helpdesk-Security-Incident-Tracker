@@ -16,8 +16,8 @@ class IncidentTicketForm(forms.ModelForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
         required=True,
-        empty_label='Select a category',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        empty_label='-- Select a category --',
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
     )
 
     class Meta:
@@ -26,7 +26,7 @@ class IncidentTicketForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Incident summary'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describe the issue or security incident'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'impact_level': forms.Select(attrs={'class': 'form-select'}),
@@ -47,11 +47,11 @@ class IncidentTicketUpdateForm(forms.ModelForm):
         model = IncidentTicket
         fields = ['status', 'category', 'priority', 'impact_level', 'assignee', 'escalation_level']
         widgets = {
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
-            'priority': forms.Select(attrs={'class': 'form-select'}),
-            'impact_level': forms.Select(attrs={'class': 'form-select'}),
-            'assignee': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
+            'priority': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
+            'impact_level': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
+            'assignee': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'escalation_level': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
         }
         labels = {
@@ -99,8 +99,8 @@ class TicketForm(forms.ModelForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
         required=True,
-        empty_label='Select a category',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        empty_label='-- Select a category --',
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
     )
 
     class Meta:
@@ -109,7 +109,7 @@ class TicketForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
         }
 
