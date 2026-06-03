@@ -19,6 +19,7 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if user.is_authenticated %}
                         <li class="nav-item me-2"><a href="{% url 'file-list' %}" class="nav-link">Vault</a></li>
+                        <li class="nav-item me-2"><a href="{% url 'file-upload' %}" class="nav-link">Upload</a></li>
                         <li class="nav-item me-2"><a href="{% url 'help-ticket-list' %}" class="nav-link">Incidents</a></li>
                         <li class="nav-item me-2"><a href="{% url 'knowledgebase-list' %}" class="nav-link">Knowledge Base</a></li>
                         {% if user.is_staff %}
