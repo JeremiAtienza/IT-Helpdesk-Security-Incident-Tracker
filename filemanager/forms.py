@@ -14,7 +14,7 @@ class VaultFileForm(forms.ModelForm):
 
 class IncidentTicketForm(forms.ModelForm):
     category = forms.ModelChoiceField(
-        queryset=Category.objects.all(),
+        queryset=Category.objects.none(),
         required=True,
         empty_label='-- Select a category --',
         widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
@@ -40,9 +40,20 @@ class IncidentTicketForm(forms.ModelForm):
             'is_resolved': 'Mark as resolved',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.all()
+
 
 class IncidentTicketUpdateForm(forms.ModelForm):
     """Form for admin to update incident status, category, priority, and assign personnel"""
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.none(),
+        required=False,
+        empty_label='-- Select a category --',
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
+    )
+
     class Meta:
         model = IncidentTicket
         fields = ['status', 'category', 'priority', 'impact_level', 'assignee', 'escalation_level']
@@ -61,6 +72,10 @@ class IncidentTicketUpdateForm(forms.ModelForm):
             'assignee': 'Assign To',
             'escalation_level': 'Escalation Level',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.all()
 
 class TicketBulkCloseForm(forms.Form):
     ticket_ids = forms.ModelMultipleChoiceField(
@@ -97,7 +112,7 @@ class CustomAuthForm(AuthenticationForm):
 
 class TicketForm(forms.ModelForm):
     category = forms.ModelChoiceField(
-        queryset=Category.objects.all(),
+        queryset=Category.objects.none(),
         required=True,
         empty_label='-- Select a category --',
         widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
@@ -112,6 +127,10 @@ class TicketForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.all()
 
 
 class TicketAttachmentForm(forms.ModelForm):
