@@ -13,6 +13,13 @@ class VaultFileForm(forms.ModelForm):
         }
 
 class IncidentTicketForm(forms.ModelForm):
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=True,
+        empty_label='Select a category',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = IncidentTicket
         fields = ['title', 'description', 'category', 'priority', 'status', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
@@ -89,6 +96,13 @@ class CustomAuthForm(AuthenticationForm):
 
 
 class TicketForm(forms.ModelForm):
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=True,
+        empty_label='Select a category',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = Ticket
         fields = ['title', 'description', 'category', 'priority']
