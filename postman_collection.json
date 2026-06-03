@@ -1,0 +1,375 @@
+{
+  "info": {
+    "name": "SecureDesk Tracker API (auto-generated)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": []
+        }
+      }
+    },
+    {
+      "name": "/upload/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/upload/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "upload"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/signup/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/signup/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/tickets/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tickets/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tickets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/tickets/new/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tickets/new/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tickets",
+            "new"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/tickets/<int:pk>/edit/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tickets/<int:pk>/edit/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tickets",
+            "<int:pk>",
+            "edit"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/tickets/bulk-close/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tickets/bulk-close/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tickets",
+            "bulk-close"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/new/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/new/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets",
+            "new"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/<int:pk>/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/<int:pk>/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets",
+            "<int:pk>"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/<int:pk>/attach/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/<int:pk>/attach/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets",
+            "<int:pk>",
+            "attach"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/incidents/<int:pk>/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/incidents/<int:pk>/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "incidents",
+            "<int:pk>"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/incidents/<int:pk>/attach/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/incidents/<int:pk>/attach/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "incidents",
+            "<int:pk>",
+            "attach"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/export/csv/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/export/csv/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets",
+            "export",
+            "csv"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/tickets/export/pdf/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/tickets/export/pdf/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "tickets",
+            "export",
+            "pdf"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/kb/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/kb/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "kb"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/kb/<int:pk>/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/kb/<int:pk>/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "kb",
+            "<int:pk>"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/admin-dashboard/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/admin-dashboard/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "admin-dashboard"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/help/admin-dashboard/ticket/<int:pk>/action/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/help/admin-dashboard/ticket/<int:pk>/action/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "help",
+            "admin-dashboard",
+            "ticket",
+            "<int:pk>",
+            "action"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/file/<int:pk>/edit/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/file/<int:pk>/edit/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "file",
+            "<int:pk>",
+            "edit"
+          ]
+        }
+      }
+    },
+    {
+      "name": "/file/<int:pk>/delete/",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/file/<int:pk>/delete/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "file",
+            "<int:pk>",
+            "delete"
+          ]
+        }
+      }
+    }
+  ]
+}
