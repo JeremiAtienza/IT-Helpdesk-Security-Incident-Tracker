@@ -430,7 +430,7 @@ class Ticket(models.Model):
 class TicketAttachment(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='attachments')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    file = models.FileField(upload_to='ticket_attachments/', storage=RawMediaCloudinaryStorage())
+    file = models.FileField(max_length=255, upload_to='ticket_attachments/', storage=RawMediaCloudinaryStorage())
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -484,7 +484,7 @@ class IncidentEvent(models.Model):
 class IncidentAttachment(models.Model):
     ticket = models.ForeignKey(IncidentTicket, on_delete=models.CASCADE, related_name='incident_attachments')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    file = models.FileField(upload_to='incident_attachments/', storage=RawMediaCloudinaryStorage())
+    file = models.FileField(max_length=255, upload_to='incident_attachments/', storage=RawMediaCloudinaryStorage())
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
