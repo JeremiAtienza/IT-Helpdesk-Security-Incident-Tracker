@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle, IncidentAttachment
+from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle, IncidentAttachment, ensure_default_categories
 
 class VaultFileForm(forms.ModelForm):
     class Meta:
@@ -42,6 +42,7 @@ class IncidentTicketForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        ensure_default_categories()
         self.fields['category'].queryset = Category.objects.all()
 
 
@@ -130,6 +131,7 @@ class TicketForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        ensure_default_categories()
         self.fields['category'].queryset = Category.objects.all()
 
 
