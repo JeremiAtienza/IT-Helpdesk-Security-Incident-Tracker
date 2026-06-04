@@ -86,7 +86,13 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>{{ user.get_full_name|default:user.username }}</strong><br>
-                                <small class="text-muted">{{ user.username }} · {{ user.groups.all|join:", " }}</small>
+                                                <small class="text-muted">{{ user.username }} · 
+                                                    {% for g in user.groups.all %}
+                                                        {{ g.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% empty %}
+                                                        No groups
+                                                    {% endfor %}
+                                                </small>
                             </div>
                             <div class="text-end">
                                 <span class="badge bg-info">{{ count }} total</span>
@@ -146,14 +152,15 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" style="display:inline;">
+                                <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
                                     {% csrf_token %}
-                                    <select name="assignee" class="form-select form-select-sm" style="display:inline;width:150px;" onchange="this.form.submit();">
+                                    <select name="assignee" class="form-select form-select-sm me-2" style="width:160px;" aria-label="Select assignee" onchange="this.form.submit();">
                                         <option value="">Unassigned</option>
                                         {% for user in staff_users %}
-                                        <option value="{{ user.pk }}" {% if ticket.assignee and ticket.assignee.pk == user.pk %}selected{% endif %}>{{ user.username }}</option>
+                                        <option value="{{ user.pk }}" {% if ticket.assignee and ticket.assignee.pk == user.pk %}selected{% endif %}>{{ user.get_full_name|default:user.username }}</option>
                                         {% endfor %}
                                     </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Assign</button>
                                 </form>
                             </td>
                             <td class="text-muted small">
