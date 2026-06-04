@@ -3,8 +3,8 @@
 {% block content %}
 <div class="row align-items-center mb-4">
     <div class="col">
-        <h2 class="h3 mb-0 text-gray-800">My Assigned Incidents</h2>
-        <p class="text-muted">Tickets assigned to you. Track your active workload and manage incident responses.</p>
+        <h2 class="h3 mb-0 text-gray-800">My Assigned Tickets</h2>
+        <p class="text-muted">Tickets assigned to you (incidents and help tickets). Track your active workload and manage responses.</p>
     </div>
 </div>
 
@@ -65,14 +65,24 @@
                     <tr>
                         <td class="ps-4 fw-semibold text-dark">{{ ticket.title }}</td>
                         <td>
-                            {% if ticket.is_resolved %}
-                                <span class="badge bg-success">{{ ticket.get_status_display }}</span>
-                            {% elif ticket.status == 'DETECTION' %}
-                                <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
-                            {% elif ticket.status == 'CONTAINMENT' %}
-                                <span class="badge bg-warning text-dark">{{ ticket.get_status_display }}</span>
+                            {% if ticket.model_type == 'incidentticket' %}
+                                {% if ticket.is_resolved %}
+                                    <span class="badge bg-success">{{ ticket.get_status_display }}</span>
+                                {% elif ticket.status == 'DETECTION' %}
+                                    <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
+                                {% elif ticket.status == 'CONTAINMENT' %}
+                                    <span class="badge bg-warning text-dark">{{ ticket.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                                {% endif %}
                             {% else %}
-                                <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                                {% if ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
+                                    <span class="badge bg-success">{{ ticket.get_status_display }}</span>
+                                {% elif ticket.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td>
@@ -97,7 +107,11 @@
                         <td class="text-muted small">{{ ticket.updated_at|date:"M d, Y H:i" }}</td>
                         <td class="text-end pe-4">
                             <div class="btn-group" role="group">
-                                <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-primary btn-sm">View/Edit</a>
+                                {% if ticket.model_type == 'incidentticket' %}
+                                    <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-primary btn-sm">View/Edit</a>
+                                {% else %}
+                                    <a href="{% url 'help-ticket-detail' ticket.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

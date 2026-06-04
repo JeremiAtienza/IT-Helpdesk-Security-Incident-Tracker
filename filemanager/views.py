@@ -163,7 +163,10 @@ class TicketListView(LoginRequiredMixin, ListView):
 
 
 class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
-    """View for staff to see tickets assigned to them"""
+    """View for staff to see tickets assigned to them (includes help tickets).
+    Returns a combined, time-sorted list of IncidentTicket and help Ticket objects
+    assigned to the current staff member.
+    """
     model = IncidentTicket
     template_name = 'filemanager/staff_assigned.html'
     context_object_name = 'assigned_tickets'
@@ -176,17 +179,30 @@ class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Show tickets assigned to current staff member
-        return IncidentTicket.objects.filter(assignee=self.request.user).order_by('-created_at')
+        # Combine incident + help tickets assigned to current staff member
+        incident_qs = IncidentTicket.objects.filter(assignee=self.request.user)
+        help_qs = Ticket.objects.filter(assignee=self.request.user)
+        # Materialize as lists and combine, then sort by created_at desc
+        combined = list(incident_qs) + list(help_qs)
+        combined.sort(key=lambda t: t.created_at, reverse=True)
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Get statistics for the dashboard
-        all_assigned = IncidentTicket.objects.filter(assignee=self.request.user)
-        context['total_assigned'] = all_assigned.count()
-        context['open_assigned'] = all_assigned.exclude(is_resolved=True).count()
-        context['resolved_assigned'] = all_assigned.filter(is_resolved=True).count()
-        context['critical_assigned'] = all_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count()
+        # Get statistics for the dashboard (include both incident and help tickets)
+        incident_assigned = IncidentTicket.objects.filter(assignee=self.request.user)
+        help_assigned = Ticket.objects.filter(assignee=self.request.user)
+        help_open_statuses = [Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]
+
+        total_assigned = incident_assigned.count() + help_assigned.count()
+        open_assigned = incident_assigned.exclude(is_resolved=True).count() + help_assigned.filter(status__in=help_open_statuses).count()
+        resolved_assigned = incident_assigned.filter(is_resolved=True).count() + help_assigned.filter(status__in=[Ticket.STATUS_RESOLVED, Ticket.STATUS_CLOSED]).count()
+        critical_assigned = incident_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count() + help_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count()
+
+        context['total_assigned'] = total_assigned
+        context['open_assigned'] = open_assigned
+        context['resolved_assigned'] = resolved_assigned
+        context['critical_assigned'] = critical_assigned
         return context
 
 
