@@ -115,11 +115,12 @@ class TicketListView(LoginRequiredMixin, ListView):
     model = IncidentTicket
     template_name = 'filemanager/ticket_list.html'
     context_object_name = 'tickets'
+    paginate_by = 10
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return IncidentTicket.objects.all()
-        return IncidentTicket.objects.filter(reporter=self.request.user)
+            return IncidentTicket.objects.all().order_by('-created_at')
+        return IncidentTicket.objects.filter(reporter=self.request.user).order_by('-created_at')
 
 class TicketCreateView(LoginRequiredMixin, CreateView):
     model = IncidentTicket
@@ -189,6 +190,7 @@ class HelpTicketListView(LoginRequiredMixin, ListView):
     model = Ticket
     template_name = 'filemanager/help_ticket_list.html'
     context_object_name = 'tickets'
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = Ticket.objects.all() if self.request.user.is_staff else Ticket.objects.filter(reporter=self.request.user)
@@ -209,7 +211,7 @@ class HelpTicketListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(priority=priority)
         if category_id:
             queryset = queryset.filter(category_id=category_id)
-        return queryset
+        return queryset.order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

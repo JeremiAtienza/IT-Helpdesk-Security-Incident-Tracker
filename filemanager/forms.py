@@ -54,6 +54,12 @@ class IncidentTicketUpdateForm(forms.ModelForm):
         empty_label='-- Select a category --',
         widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
     )
+    assignee = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        empty_label='-- Unassigned --',
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
+    )
 
     class Meta:
         model = IncidentTicket
@@ -63,20 +69,21 @@ class IncidentTicketUpdateForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'priority': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'impact_level': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
-            'assignee': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'escalation_level': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
         }
         labels = {
             'category': 'Incident Category',
             'priority': 'Priority',
             'impact_level': 'Impact Level',
-            'assignee': 'Assign To',
+            'assignee': 'Assign To (Staff Only)',
             'escalation_level': 'Escalation Level',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].queryset = Category.objects.all()
+        # Only show staff/admin users for assignment
+        self.fields['assignee'].queryset = User.objects.filter(is_staff=True, is_active=True).order_by('username')
 
 class TicketBulkCloseForm(forms.Form):
     ticket_ids = forms.ModelMultipleChoiceField(
