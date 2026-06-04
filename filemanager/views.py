@@ -592,6 +592,10 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 pass
 
             ctx['error'] = 'Unable to load dashboard data at this time. Check Render environment variables and database configuration.'
+            if self.request.user.is_staff:
+                ctx['error_details'] = tb
+            else:
+                ctx['error_details'] = None
             # provide safe empty defaults so template renders
             ctx['open_tickets'] = 0
             ctx['resolved_tickets'] = 0

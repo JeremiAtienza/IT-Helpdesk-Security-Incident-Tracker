@@ -10,8 +10,10 @@ services:
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
-        value: "REPLACE_WITH_STRONG_SECRET"
+        value: "9a6bd6c7e6333f2451d8e76e825c6adb"
+      - key: DATABASE_URL
+        value: "postgresql://database_bunb_user:JY5sybHn5waNfNWYcGnoSF4anGTCMRf1@dpg-d8fg88uq1p3s73eog19g-a:5432/database_bunb?sslmode=require"
       - key: ALLOWED_HOSTS
-        value: "your-app.onrender.com"
+        value: "it-helpdesk-security-incident-tracker-6l52.onrender.com"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://your-app.onrender.com"
+        value: "https://it-helpdesk-security-incident-tracker-6l52.onrender.com"
