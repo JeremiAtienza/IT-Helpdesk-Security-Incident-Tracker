@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="h3 mb-0 text-gray-800">My Assigned Incidents</h2>
+        <p class="text-muted">Tickets assigned to you. Track your active workload and manage incident responses.</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title mb-0">Total Assigned</h6>
+                <p class="display-5 mb-0">{{ total_assigned }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="card-title mb-0">Open Tickets</h6>
+                <p class="display-5 mb-0">{{ open_assigned }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title mb-0">Resolved</h6>
+                <p class="display-5 mb-0">{{ resolved_assigned }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title mb-0">🚨 Critical</h6>
+                <p class="display-5 mb-0">{{ critical_assigned }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assigned Tickets Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Category</th>
+                        <th>Reporter</th>
+                        <th>Updated</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in assigned_tickets %}
+                    <tr>
+                        <td class="ps-4 fw-semibold text-dark">{{ ticket.title }}</td>
+                        <td>
+                            {% if ticket.is_resolved %}
+                                <span class="badge bg-success">{{ ticket.get_status_display }}</span>
+                            {% elif ticket.status == 'DETECTION' %}
+                                <span class="badge bg-info text-dark">{{ ticket.get_status_display }}</span>
+                            {% elif ticket.status == 'CONTAINMENT' %}
+                                <span class="badge bg-warning text-dark">{{ ticket.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.priority == 'CRITICAL' %}
+                                <span class="badge bg-danger">{{ ticket.get_priority_display }}</span>
+                            {% elif ticket.priority == 'HIGH' %}
+                                <span class="badge bg-warning text-dark">{{ ticket.get_priority_display }}</span>
+                            {% elif ticket.priority == 'MEDIUM' %}
+                                <span class="badge bg-info text-dark">{{ ticket.get_priority_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ ticket.get_priority_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.category %}
+                                <span class="text-muted">{{ ticket.category.name }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if ticket.reporter %}{{ ticket.reporter.username }}{% else %}Unknown{% endif %}</td>
+                        <td class="text-muted small">{{ ticket.updated_at|date:"M d, Y H:i" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-primary btn-sm">View/Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <p class="mb-2">No tickets assigned to you yet.</p>
+                            <small>Check back soon or contact your administrator to get assigned tickets.</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="d-flex justify-content-center my-4">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">First</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">First</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">Last</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Info Section -->
+<div class="alert alert-info mt-4" role="alert">
+    <strong>💡 How to Update Status:</strong>
+    <p class="mb-0">Click "View/Edit" on any ticket to update its status, add notes, or mark as resolved. Changes are tracked in the incident chain of custody.</p>
+</div>
+{% endblock %}

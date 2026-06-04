@@ -159,6 +159,34 @@ class TicketListView(LoginRequiredMixin, ListView):
             return IncidentTicket.objects.all().order_by('-created_at')
         return IncidentTicket.objects.filter(reporter=self.request.user).order_by('-created_at')
 
+
+class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
+    """View for staff to see tickets assigned to them"""
+    model = IncidentTicket
+    template_name = 'filemanager/staff_assigned.html'
+    context_object_name = 'assigned_tickets'
+    paginate_by = 10
+
+    def dispatch(self, request, *args, **kwargs):
+        # Only staff can access this view
+        if not request.user.is_staff:
+            raise PermissionDenied('Only staff members can access assigned tickets')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        # Show tickets assigned to current staff member
+        return IncidentTicket.objects.filter(assignee=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get statistics for the dashboard
+        all_assigned = IncidentTicket.objects.filter(assignee=self.request.user)
+        context['total_assigned'] = all_assigned.count()
+        context['open_assigned'] = all_assigned.exclude(is_resolved=True).count()
+        context['resolved_assigned'] = all_assigned.filter(is_resolved=True).count()
+        context['critical_assigned'] = all_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count()
+        return context
+
 class TicketCreateView(LoginRequiredMixin, CreateView):
     model = IncidentTicket
     form_class = IncidentTicketForm
@@ -508,6 +536,16 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ]
             ctx['status_choices'] = Ticket.STATUS_CHOICES
             ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
+            
+            # Staff workload summary
+            staff_workload = []
+            for user in ctx['staff_users']:
+                total_assigned = IncidentTicket.objects.filter(assignee=user).count()
+                unresolved_assigned = IncidentTicket.objects.filter(assignee=user, is_resolved=False).count()
+                if total_assigned > 0:
+                    staff_workload.append((user, total_assigned, unresolved_assigned))
+            ctx['staff_workload'] = staff_workload
+            
             ctx['recent_audit_events'] = AuditLog.objects.order_by('-timestamp')[:20]
         except Exception:
             logger.exception('Admin dashboard context error')
@@ -548,6 +586,8 @@ class AdminTicketActionView(LoginRequiredMixin, View):
         if status_value in valid_statuses:
             ticket.status = status_value
 
+        previous_assignee = ticket.assignee
+
         if assignee_id:
             user = get_user_model().objects.filter(pk=assignee_id, is_active=True).first()
             ticket.assignee = user
@@ -556,5 +596,18 @@ class AdminTicketActionView(LoginRequiredMixin, View):
 
         ticket.last_updated_by = request.user
         ticket.save()
+
+        # If assignee changed, create an audit entry is handled by post_save signal.
+        # Additionally, notify the newly assigned user by email (if available).
+        new_assignee = ticket.assignee
+        if new_assignee and (not previous_assignee or previous_assignee.pk != new_assignee.pk):
+            try:
+                from django.core.mail import send_mail
+                subject = f"You have been assigned ticket #{ticket.pk}: {ticket.title}"
+                message = f"Hello {new_assignee.get_full_name() or new_assignee.username},\n\nYou have been assigned to the ticket:\n\nTitle: {ticket.title}\nPriority: {ticket.get_priority_display()}\nStatus: {ticket.get_status_display()}\n\nPlease review it in the dashboard: {request.build_absolute_uri(reverse('ticket-edit', args=[ticket.pk]))}\n\nThanks."
+                if new_assignee.email:
+                    send_mail(subject, message, getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'), [new_assignee.email], fail_silently=True)
+            except Exception:
+                logger.exception('Failed to notify new assignee via email for ticket id=%s', ticket.pk)
 
         return HttpResponseRedirect(reverse('admin-dashboard'))

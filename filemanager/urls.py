@@ -5,6 +5,7 @@ from .views import (
     FileUploadView,
     SignUpView,
     StaffCreateView,
+    StaffDashboardAssignedView,
     FileUpdateView,
     FileDeleteView,
     TicketListView,
@@ -31,6 +32,7 @@ urlpatterns = [
     path('upload/', FileUploadView.as_view(), name='file-upload'),
     path('signup/', SignUpView.as_view(), name='signup'),
     path('staff/create/', StaffCreateView.as_view(), name='staff-create'),
+    path('staff/assigned/', StaffDashboardAssignedView.as_view(), name='staff-assigned'),
 
     path('tickets/', TicketListView.as_view(), name='ticket-list'),
     path('tickets/new/', TicketCreateView.as_view(), name='ticket-create'),
