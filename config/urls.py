@@ -18,11 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from filemanager.forms import CustomAuthForm
-from filemanager.views import AdminDashboardView
 import two_factor.urls as two_factor_urls
 
 urlpatterns = [
-    path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('admin/', admin.site.urls),
     path('accounts/', include((two_factor_urls.urlpatterns[0], 'two_factor'), namespace='two_factor')),
     # Keep classic auth fallback and custom login form for password reset / logout paths
