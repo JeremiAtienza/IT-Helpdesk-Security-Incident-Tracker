@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -53,6 +54,14 @@ if not ALLOWED_HOSTS:
 
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.railway.app', 'https://*.onrender.com'])
 
+AXES_ENABLED = env.bool('AXES_ENABLED', default=True)
+AXES_FAILURE_LIMIT = env.int('AXES_FAILURE_LIMIT', default=5)
+AXES_COOLOFF_TIME = timedelta(minutes=30)
+AXES_LOCK_OUT_AT_FAILURE = True
+AXES_USE_USER_AGENT = True
+AXES_ONLY_USER_FAILURES = False
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
+AXES_META_PRECEDENCE_ORDER = ('REMOTE_ADDR', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP')
 
 # Application definition
 
@@ -73,6 +82,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'ratelimit',
+    'axes',
 
     # Two-factor auth
     'django_otp',
@@ -95,6 +105,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -228,10 +239,31 @@ LOGGING = {
             'filename': BASE_DIR / 'incident_chain.log',
             'formatter': 'verbose',
         },
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'security.log',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'incident_chain': {
             'handlers': ['incident_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'security': {
+            'handlers': ['security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'axes': {
+            'handlers': ['security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security_file'],
             'level': 'INFO',
             'propagate': False,
         },

@@ -27,3 +27,6 @@ django-phonenumber-field==8.4.0
 phonenumbers==8.13.11
 twilio==8.4.0
 reportlab==4.0.0
+django-axes==6.1.0
+bandit==1.9.4
+pip-audit==2.10.0

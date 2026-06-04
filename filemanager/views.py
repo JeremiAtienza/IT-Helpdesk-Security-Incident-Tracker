@@ -66,6 +66,32 @@ def is_helpdesk_staff(user):
         user.is_staff or user.groups.filter(name__in=STAFF_GROUP_NAMES).exists()
     )
 
+
+def honeypot_trap(request):
+    ip = request.META.get('REMOTE_ADDR', 'unknown')
+    user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
+    if request.method == 'POST':
+        username = request.POST.get('username', '<none>')
+        AuditLog.objects.create(
+            actor=None,
+            action='honeypot_attempt',
+            object_type='Honeypot',
+            object_id=None,
+            detail=f'username={username} ip={ip} ua={user_agent} path={request.path}',
+        )
+        logger.warning('Honeypot attempt from %s username=%s ua=%s', ip, username, user_agent)
+        return HttpResponse('Access denied.', status=403)
+
+    AuditLog.objects.create(
+        actor=None,
+        action='honeypot_probe',
+        object_type='Honeypot',
+        object_id=None,
+        detail=f'ip={ip} ua={user_agent} path={request.path}',
+    )
+    logger.warning('Honeypot probe from %s ua=%s path=%s', ip, user_agent, request.path)
+    return HttpResponse('Not found.', status=404)
+
 logger = logging.getLogger(__name__)
 
 class FileListView(LoginRequiredMixin, ListView):

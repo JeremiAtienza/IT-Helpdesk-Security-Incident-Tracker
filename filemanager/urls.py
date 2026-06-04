@@ -28,6 +28,7 @@ from .views import (
     ProfileUpdateView,
     KnowledgeBaseListView,
     KnowledgeBaseDetailView,
+    honeypot_trap,
 )
 
 urlpatterns = [
@@ -38,6 +39,7 @@ urlpatterns = [
     path('staff/assigned/', StaffDashboardAssignedView.as_view(), name='staff-assigned'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/edit/', ProfileUpdateView.as_view(), name='profile-edit'),
+    path('admin-secret/', honeypot_trap, name='honeypot-trap'),
 
     path('tickets/', TicketListView.as_view(), name='ticket-list'),
     path('tickets/new/', TicketCreateView.as_view(), name='ticket-create'),

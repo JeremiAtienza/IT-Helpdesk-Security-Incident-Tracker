@@ -8,6 +8,15 @@ Secure incident desk and file management system built with Django.
 - Incident and help ticket workflow with SLA tracking and escalation
 - Knowledge base search, audit logging, and admin dashboard analytics
 - JWT API endpoint for incident ticket creation
+- Active defense with brute-force protection and honeypot detection
+
+## Security and Compliance
+- Brute-force protection is implemented with `django-axes` in `config/settings.py`.
+- A custom honeypot trap is available at `/admin-secret/` in `filemanager/urls.py` and `filemanager/views.py`.
+- Python audit logging is captured by the `AuditLog` model in `filemanager/models.py`, including login success/failure and ticket change history.
+- Security scan artifacts are generated in `pip_audit.json`, `bandit.json`, and `django_check.txt`.
+- Run `python scripts/run_security_scans.py` to refresh scan outputs.
+- A PDF summary can be built with `scripts/generate_security_pdf.py`.
 
 ## Setup
 1. Create and activate the virtual environment
@@ -23,7 +32,13 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-3. Apply database migrations
+3. Install security scan tooling required by the project scripts:
+
+```powershell
+pip install django-axes pip-audit bandit
+```
+
+4. Apply database migrations
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate
