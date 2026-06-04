@@ -22,6 +22,7 @@
                         <li class="nav-item me-2"><a href="{% url 'file-upload' %}" class="nav-link">Upload</a></li>
                         <li class="nav-item me-2"><a href="{% url 'help-ticket-list' %}" class="nav-link">Incidents</a></li>
                         <li class="nav-item me-2"><a href="{% url 'knowledgebase-list' %}" class="nav-link">Knowledge Base</a></li>
+                        <li class="nav-item me-2"><a href="{% url 'profile' %}" class="nav-link">Profile</a></li>
                         {% if user.is_staff %}
                             <li class="nav-item me-2"><a href="{% url 'staff-assigned' %}" class="nav-link"><strong>📋 My Work</strong></a></li>
                             <li class="nav-item me-2"><a href="{% url 'admin-dashboard' %}" class="nav-link">Admin</a></li>
