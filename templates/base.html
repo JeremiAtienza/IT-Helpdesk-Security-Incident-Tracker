@@ -25,6 +25,8 @@
                         <li class="nav-item me-2"><a href="{% url 'profile' %}" class="nav-link">Profile</a></li>
                         {% if user.is_staff %}
                             <li class="nav-item me-2"><a href="{% url 'staff-assigned' %}" class="nav-link"><strong>📋 My Work</strong></a></li>
+                        {% endif %}
+                        {% if user.is_superuser %}
                             <li class="nav-item me-2"><a href="{% url 'admin-dashboard' %}" class="nav-link">Admin</a></li>
                         {% endif %}
                         <li class="nav-item ms-3">
