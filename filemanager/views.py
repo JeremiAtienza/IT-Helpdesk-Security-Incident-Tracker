@@ -52,6 +52,20 @@ from .forms import (
     KnowledgeBaseSearchForm,
 )
 
+STAFF_GROUP_NAMES = [
+    'IT Staff',
+    'Security Analyst',
+    'Account Support Team',
+    'Security Team',
+    'Network Administrator',
+    'Admin',
+]
+
+def is_helpdesk_staff(user):
+    return user.is_authenticated and (
+        user.is_staff or user.groups.filter(name__in=STAFF_GROUP_NAMES).exists()
+    )
+
 logger = logging.getLogger(__name__)
 
 class FileListView(LoginRequiredMixin, ListView):
@@ -170,8 +184,8 @@ class StaffDashboardAssignedView(LoginRequiredMixin, TemplateView):
     template_name = 'filemanager/staff_assigned.html'
 
     def dispatch(self, request, *args, **kwargs):
-        # Only staff can access this view
-        if not request.user.is_staff:
+        # Only staff or staff-group users can access this view
+        if not is_helpdesk_staff(request.user):
             raise PermissionDenied('Only staff members can access assigned tickets')
         return super().dispatch(request, *args, **kwargs)
 
