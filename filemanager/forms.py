@@ -110,6 +110,55 @@ class CustomUserCreationForm(UserCreationForm):
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
 
+
+class StaffCreationForm(UserCreationForm):
+    """Form to create staff accounts with additional details"""
+    email = forms.EmailField(required=True, help_text='Required. Enter a valid email address.')
+    first_name = forms.CharField(max_length=30, required=True, help_text='Staff member\'s first name')
+    last_name = forms.CharField(max_length=150, required=True, help_text='Staff member\'s last name')
+    role = forms.ChoiceField(
+        choices=[
+            ('IT Staff', 'IT Staff'),
+            ('Security Analyst', 'Security Analyst'),
+            ('Account Support Team', 'Account Support Team'),
+            ('Security Team', 'Security Team'),
+            ('Network Administrator', 'Network Administrator'),
+        ],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'})
+    )
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email address'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to password fields
+        self.fields['password1'].widget.attrs['class'] = 'form-control'
+        self.fields['password2'].widget.attrs['class'] = 'form-control'
+        self.fields['password1'].help_text = 'Password must be at least 8 characters, contain uppercase, lowercase, numbers, and special characters.'
+        
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_staff = True
+        user.is_active = True
+        if commit:
+            user.save()
+        return user
+
 class CustomAuthForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

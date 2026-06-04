@@ -20,6 +20,7 @@ from django.views.generic import (
 from django.views.generic.edit import FormMixin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import Group
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -40,6 +41,7 @@ from .forms import (
     IncidentTicketUpdateForm,
     TicketBulkCloseForm,
     CustomUserCreationForm,
+    StaffCreationForm,
     TicketForm,
     TicketAttachmentForm,
     IncidentAttachmentForm,
@@ -72,6 +74,41 @@ class SignUpView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/signup.html'
     success_url = reverse_lazy('login')
+
+class StaffCreateView(LoginRequiredMixin, CreateView):
+    """View to create staff accounts with role assignment (Admin only)"""
+    model = get_user_model()
+    form_class = StaffCreationForm
+    template_name = 'filemanager/staff_create.html'
+    success_url = reverse_lazy('admin-dashboard')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Only admins can create staff accounts
+        if not request.user.is_superuser and not (request.user.is_staff and request.user.groups.filter(name='Admin').exists()):
+            raise PermissionDenied('Only administrators can create staff accounts')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.instance
+        
+        # Assign to the selected role group
+        role = form.cleaned_data.get('role')
+        if role:
+            group = Group.objects.filter(name=role).first()
+            if group:
+                user.groups.add(group)
+                logger.info('Staff account created: %s assigned to group: %s by %s', user.username, role, self.request.user.username)
+            else:
+                logger.warning('Group not found: %s', role)
+        
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Create Staff Account'
+        context['groups'] = Group.objects.filter(name__in=['IT Staff', 'Security Analyst', 'Account Support Team', 'Security Team', 'Network Administrator']).count()
+        return context
 
 class FileUpdateView(LoginRequiredMixin, UpdateView):
     model = VaultFile
