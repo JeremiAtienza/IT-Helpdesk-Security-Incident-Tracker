@@ -104,6 +104,7 @@ class IncidentTicket(models.Model):
     evidence_summary = models.TextField(blank=True, default='')
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=NIST_STAGE_DETECTION)
     is_resolved = models.BooleanField(default=False)
+    is_security_incident = models.BooleanField(default=False)
     source = models.CharField(max_length=64, default='web')
     chain_of_custody = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -121,6 +122,11 @@ class IncidentTicket(models.Model):
         return f"{self.title} ({self.status})"
 
     def save(self, *args, **kwargs):
+        if self.category:
+            self.is_security_incident = bool(self.category.is_security)
+        else:
+            self.is_security_incident = False
+
         is_new = self.pk is None
         previous = None
         if not is_new:
