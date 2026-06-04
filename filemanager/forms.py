@@ -44,6 +44,10 @@ class IncidentTicketForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         ensure_default_categories()
         self.fields['category'].queryset = Category.objects.all()
+        # Make optional fields explicitly not required
+        self.fields['affected_assets'].required = False
+        self.fields['iocs'].required = False
+        self.fields['evidence_summary'].required = False
 
 
 class IncidentTicketUpdateForm(forms.ModelForm):

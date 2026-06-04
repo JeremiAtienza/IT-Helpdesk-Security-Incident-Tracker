@@ -235,6 +235,8 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         form.instance.reporter = self.request.user
         form.instance.last_updated_by = self.request.user
         form.instance.source = 'web'
+        # Ensure new tickets always start in DETECTION status
+        form.instance.status = IncidentTicket.NIST_STAGE_DETECTION
         logger.info('Web ticket submission by %s', self.request.user.username)
         return super().form_valid(form)
 
