@@ -58,8 +58,8 @@ urlpatterns = [
     path('help/tickets/export/pdf/', TicketExportPDFView.as_view(), name='help-ticket-export-pdf'),
     path('help/kb/', KnowledgeBaseListView.as_view(), name='knowledgebase-list'),
     path('help/kb/<int:pk>/', KnowledgeBaseDetailView.as_view(), name='knowledgebase-detail'),
-    path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
-    path('admin/dashboard/ticket/<int:pk>/action/', AdminTicketActionView.as_view(), name='admin-ticket-action'),
+    path('help/admin-dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
+    path('help/admin-dashboard/ticket/<int:pk>/action/', AdminTicketActionView.as_view(), name='admin-ticket-action'),
 
     path('file/<int:pk>/edit/', FileUpdateView.as_view(), name='file-edit'),
     path('file/<int:pk>/delete/', FileDeleteView.as_view(), name='file-delete'),
