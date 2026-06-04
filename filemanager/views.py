@@ -580,7 +580,10 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                     count += 1
             ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
 
-            ctx['live_tickets'] = tickets.filter(status__in=open_statuses).order_by('-created_at')[:10]
+            incident_live = list(tickets.filter(status__in=open_statuses).order_by('-created_at')[:10])
+            help_live = list(help_tickets.filter(status__in=help_open_statuses).order_by('-created_at')[:10])
+            combined_live = sorted(incident_live + help_live, key=lambda ticket: ticket.created_at, reverse=True)[:10]
+            ctx['live_tickets'] = combined_live
 
             status_counter = Counter()
             for item in tickets.values('status').annotate(count=models.Count('id')):
