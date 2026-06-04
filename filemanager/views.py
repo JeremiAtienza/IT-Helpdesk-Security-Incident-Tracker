@@ -2,6 +2,7 @@ import csv
 import io
 import logging
 from datetime import timedelta
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.urls import reverse_lazy
@@ -542,9 +543,9 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         try:
-            open_statuses = [Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]
-            resolved_statuses = [Ticket.STATUS_RESOLVED, Ticket.STATUS_CLOSED]
-            tickets = Ticket.objects.all()
+            open_statuses = [IncidentTicket.STATUS_DETECTION, IncidentTicket.STATUS_CONTAINMENT]
+            resolved_statuses = [IncidentTicket.STATUS_RECOVERY]
+            tickets = IncidentTicket.objects.all()
 
             ctx['open_tickets'] = tickets.filter(status__in=open_statuses).count()
             ctx['resolved_tickets'] = tickets.filter(status__in=resolved_statuses).count()
@@ -567,7 +568,7 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 for item in tickets.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
                 if item['category__name']
             ]
-            ctx['status_choices'] = Ticket.STATUS_CHOICES
+            ctx['status_choices'] = IncidentTicket.STATUS_CHOICES
             ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
             
             # Staff workload summary
@@ -611,11 +612,11 @@ class AdminTicketActionView(LoginRequiredMixin, View):
         if not request.user.is_staff:
             return self.handle_no_permission()
 
-        ticket = get_object_or_404(Ticket, pk=kwargs.get('pk'))
+        ticket = get_object_or_404(IncidentTicket, pk=kwargs.get('pk'))
         status_value = request.POST.get('status')
         assignee_id = request.POST.get('assignee')
 
-        valid_statuses = {choice[0] for choice in Ticket.STATUS_CHOICES}
+        valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
         if status_value in valid_statuses:
             ticket.status = status_value
 
