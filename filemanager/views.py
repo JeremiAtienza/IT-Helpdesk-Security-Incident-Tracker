@@ -665,13 +665,18 @@ class AdminTicketActionView(LoginRequiredMixin, View):
         if not request.user.is_staff:
             return self.handle_no_permission()
 
-        ticket = get_object_or_404(IncidentTicket, pk=kwargs.get('pk'))
+        ticket_pk = kwargs.get('pk')
+        ticket = IncidentTicket.objects.filter(pk=ticket_pk).first() or Ticket.objects.filter(pk=ticket_pk).first()
+        if not ticket:
+            raise Http404('Ticket not found')
+
         status_value = request.POST.get('status')
         assignee_id = request.POST.get('assignee')
 
-        valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
-        if status_value in valid_statuses:
-            ticket.status = status_value
+        if isinstance(ticket, IncidentTicket):
+            valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
+            if status_value in valid_statuses:
+                ticket.status = status_value
 
         previous_assignee = ticket.assignee
 
@@ -691,7 +696,8 @@ class AdminTicketActionView(LoginRequiredMixin, View):
             try:
                 from django.core.mail import send_mail
                 subject = f"You have been assigned ticket #{ticket.pk}: {ticket.title}"
-                message = f"Hello {new_assignee.get_full_name() or new_assignee.username},\n\nYou have been assigned to the ticket:\n\nTitle: {ticket.title}\nPriority: {ticket.get_priority_display()}\nStatus: {ticket.get_status_display()}\n\nPlease review it in the dashboard: {request.build_absolute_uri(reverse('ticket-edit', args=[ticket.pk]))}\n\nThanks."
+                ticket_url = reverse('ticket-edit', args=[ticket.pk]) if isinstance(ticket, IncidentTicket) else reverse('help-ticket-detail', args=[ticket.pk])
+                message = f"Hello {new_assignee.get_full_name() or new_assignee.username},\n\nYou have been assigned to the ticket:\n\nTitle: {ticket.title}\nPriority: {ticket.get_priority_display()}\nStatus: {ticket.get_status_display()}\n\nPlease review it in the dashboard: {request.build_absolute_uri(ticket_url)}\n\nThanks."
                 if new_assignee.email:
                     send_mail(subject, message, getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'), [new_assignee.email], fail_silently=True)
             except Exception:

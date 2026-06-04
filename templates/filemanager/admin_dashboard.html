@@ -158,7 +158,6 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if ticket.model_type == 'incidentticket' %}
                                 <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
                                     {% csrf_token %}
                                     <select name="assignee" class="form-select form-select-sm me-2" style="width:160px;" aria-label="Select assignee" onchange="this.form.submit();">
@@ -169,9 +168,6 @@
                                     </select>
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Assign</button>
                                 </form>
-                                {% else %}
-                                <span class="text-muted">N/A</span>
-                                {% endif %}
                             </td>
                             <td class="text-muted small">
                                 {% if ticket.sla_due %}
@@ -181,7 +177,11 @@
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
+                                {% if ticket.model_type == 'incidentticket' %}
                                 <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                {% else %}
+                                <a href="{% url 'help-ticket-detail' ticket.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
