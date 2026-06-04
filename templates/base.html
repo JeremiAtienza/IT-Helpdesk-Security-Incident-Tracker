@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SecureDesk Tracker | Secure Incident & Desk Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% load static %}
+    {% load static user_groups %}
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
 </head>
 <body>
@@ -23,7 +23,7 @@
                         <li class="nav-item me-2"><a href="{% url 'help-ticket-list' %}" class="nav-link">Incidents</a></li>
                         <li class="nav-item me-2"><a href="{% url 'knowledgebase-list' %}" class="nav-link">Knowledge Base</a></li>
                         <li class="nav-item me-2"><a href="{% url 'profile' %}" class="nav-link">Profile</a></li>
-                        {% if user.is_staff or user.groups.filter(name__in=['IT Staff','Security Analyst','Account Support Team','Security Team','Network Administrator']).exists %}
+                        {% if user|is_staff_or_support_group %}
                             <li class="nav-item me-2"><a href="{% url 'staff-assigned' %}" class="nav-link"><strong>📋 My Work</strong></a></li>
                         {% endif %}
                         {% if user.is_superuser %}
