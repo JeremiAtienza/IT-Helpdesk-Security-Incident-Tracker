@@ -572,9 +572,10 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             ctx['stale_tickets'] = stale_count
 
             resolved = tickets.filter(status__in=resolved_statuses)
+            help_resolved = help_tickets.filter(status__in=help_resolved_statuses)
             total = 0
             count = 0
-            for t in resolved:
+            for t in list(resolved) + list(help_resolved):
                 if t.updated_at and t.created_at:
                     total += (t.updated_at - t.created_at).total_seconds()
                     count += 1
