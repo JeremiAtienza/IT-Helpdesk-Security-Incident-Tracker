@@ -107,17 +107,8 @@ class StaffCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         user = form.instance
-        
-        # Assign to the selected role group
-        role = form.cleaned_data.get('role')
-        if role:
-            group = Group.objects.filter(name=role).first()
-            if group:
-                user.groups.add(group)
-                logger.info('Staff account created: %s assigned to group: %s by %s', user.username, role, self.request.user.username)
-            else:
-                logger.warning('Group not found: %s', role)
-        
+        # Group assignment is now handled in StaffCreationForm.save()
+        logger.info('Staff account created: %s by %s', user.username, self.request.user.username)
         return response
 
     def get_context_data(self, **kwargs):

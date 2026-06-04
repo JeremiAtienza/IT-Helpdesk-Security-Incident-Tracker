@@ -23,7 +23,7 @@
                         <li class="nav-item me-2"><a href="{% url 'help-ticket-list' %}" class="nav-link">Incidents</a></li>
                         <li class="nav-item me-2"><a href="{% url 'knowledgebase-list' %}" class="nav-link">Knowledge Base</a></li>
                         <li class="nav-item me-2"><a href="{% url 'profile' %}" class="nav-link">Profile</a></li>
-                        {% if user|is_staff_or_support_group %}
+                        {% if user.is_staff %}
                             <li class="nav-item me-2"><a href="{% url 'staff-assigned' %}" class="nav-link"><strong>📋 My Work</strong></a></li>
                         {% endif %}
                         {% if user.is_superuser %}

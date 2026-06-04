@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django import forms
 from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle, IncidentAttachment, ensure_default_categories
 from .models import UserProfile
@@ -161,6 +161,12 @@ class StaffCreationForm(UserCreationForm):
         user.is_active = True
         if commit:
             user.save()
+            # Assign to the selected role group
+            role = self.cleaned_data.get('role')
+            if role:
+                group = Group.objects.filter(name=role).first()
+                if group:
+                    user.groups.add(group)
         return user
 
 class CustomAuthForm(AuthenticationForm):
