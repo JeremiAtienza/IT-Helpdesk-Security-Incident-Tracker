@@ -8,6 +8,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.signals import user_login_failed, user_logged_in, user_logged_out
 from django.utils import timezone
 import cloudinary.uploader
@@ -20,6 +21,8 @@ class VaultFile(models.Model):
     title = models.CharField(max_length=255, help_text="Give your file a descriptive name")
     document = models.FileField(upload_to='vault/', storage=RawMediaCloudinaryStorage())
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
 
     class Meta:
         ordering = ['-uploaded_at']
@@ -34,6 +37,8 @@ class VaultFile(models.Model):
                 # self.document.name contains the Cloudinary public_id
                 # resource_type='raw' is required because we used RawMediaCloudinaryStorage
                 cloudinary.uploader.destroy(self.document.name, resource_type='raw')
+
+
             except Exception as e:
                 # Print the error to your server logs if the Cloudinary API fails
                 print(f"Error deleting file from Cloudinary: {e}")

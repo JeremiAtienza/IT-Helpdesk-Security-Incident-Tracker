@@ -187,6 +187,39 @@ class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
         context['critical_assigned'] = all_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count()
         return context
 
+
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'filemanager/profile.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        profile = getattr(user, 'profile', None)
+        ctx['user_obj'] = user
+        ctx['profile'] = profile
+        return ctx
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = 'filemanager/profile_edit.html'
+    form_class = None
+
+    def get_form_class(self):
+        from .forms import UserProfileForm
+        return UserProfileForm
+
+    def get_object(self, queryset=None):
+        # Ensure a profile exists
+        profile = getattr(self.request.user, 'profile', None)
+        if not profile:
+            from .models import UserProfile
+            profile = UserProfile.objects.create(user=self.request.user)
+        return profile
+
+    def get_success_url(self):
+        from django.urls import reverse
+        return reverse('profile')
+
 class TicketCreateView(LoginRequiredMixin, CreateView):
     model = IncidentTicket
     form_class = IncidentTicketForm

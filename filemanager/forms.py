@@ -2,6 +2,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
 from .models import Category, VaultFile, IncidentTicket, Ticket, TicketAttachment, TicketComment, KnowledgeBaseArticle, IncidentAttachment, ensure_default_categories
+from .models import UserProfile
 
 class VaultFileForm(forms.ModelForm):
     class Meta:
@@ -244,3 +245,15 @@ class TicketSearchForm(forms.Form):
 
 class KnowledgeBaseSearchForm(forms.Form):
     query = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Search help articles'}))
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['title', 'phone', 'bio', 'avatar']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Role / Title'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+1 555 555 5555'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Short bio or notes...'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
