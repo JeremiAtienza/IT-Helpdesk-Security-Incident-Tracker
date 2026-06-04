@@ -23,6 +23,7 @@ from .views import (
     AttachmentUploadView,
     AdminDashboardView,
     AdminTicketActionView,
+    TicketStatusUpdateView,
     ProfileView,
     ProfileUpdateView,
     KnowledgeBaseListView,
@@ -60,6 +61,7 @@ urlpatterns = [
     path('help/kb/<int:pk>/', KnowledgeBaseDetailView.as_view(), name='knowledgebase-detail'),
     path('help/admin-dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     re_path(r'^help/admin-dashboard/ticket/(?P<ticket_type>incident|help)/(?P<pk>\d+)/action/?$', AdminTicketActionView.as_view(), name='admin-ticket-action'),
+    path('ticket/status-update/', TicketStatusUpdateView.as_view(), name='ticket-status-update'),
 
     path('file/<int:pk>/edit/', FileUpdateView.as_view(), name='file-edit'),
     path('file/<int:pk>/delete/', FileDeleteView.as_view(), name='file-delete'),

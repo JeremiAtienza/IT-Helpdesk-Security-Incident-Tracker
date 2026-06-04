@@ -162,15 +162,12 @@ class TicketListView(LoginRequiredMixin, ListView):
         return IncidentTicket.objects.filter(reporter=self.request.user).order_by('-created_at')
 
 
-class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
+class StaffDashboardAssignedView(LoginRequiredMixin, TemplateView):
     """View for staff to see tickets assigned to them (includes help tickets).
-    Returns a combined, time-sorted list of IncidentTicket and help Ticket objects
-    assigned to the current staff member.
+    Shows both IncidentTicket and help Ticket objects assigned to current staff.
+    Separate querysets for each type to maintain queryset functionality.
     """
-    model = IncidentTicket
     template_name = 'filemanager/staff_assigned.html'
-    context_object_name = 'assigned_tickets'
-    paginate_by = 10
 
     def dispatch(self, request, *args, **kwargs):
         # Only staff can access this view
@@ -178,31 +175,26 @@ class StaffDashboardAssignedView(LoginRequiredMixin, ListView):
             raise PermissionDenied('Only staff members can access assigned tickets')
         return super().dispatch(request, *args, **kwargs)
 
-    def get_queryset(self):
-        # Combine incident + help tickets assigned to current staff member
-        incident_qs = IncidentTicket.objects.filter(assignee=self.request.user)
-        help_qs = Ticket.objects.filter(assignee=self.request.user)
-        # Materialize as lists and combine, then sort by created_at desc
-        combined = list(incident_qs) + list(help_qs)
-        combined.sort(key=lambda t: t.created_at, reverse=True)
-        return combined
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Get statistics for the dashboard (include both incident and help tickets)
-        incident_assigned = IncidentTicket.objects.filter(assignee=self.request.user)
-        help_assigned = Ticket.objects.filter(assignee=self.request.user)
+        # Get both types of assigned tickets
+        incident_assigned = IncidentTicket.objects.filter(assignee=self.request.user).order_by('-created_at')
+        help_assigned = Ticket.objects.filter(assignee=self.request.user).order_by('-created_at')
         help_open_statuses = [Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]
 
+        # Statistics
         total_assigned = incident_assigned.count() + help_assigned.count()
         open_assigned = incident_assigned.exclude(is_resolved=True).count() + help_assigned.filter(status__in=help_open_statuses).count()
         resolved_assigned = incident_assigned.filter(is_resolved=True).count() + help_assigned.filter(status__in=[Ticket.STATUS_RESOLVED, Ticket.STATUS_CLOSED]).count()
-        critical_assigned = incident_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count() + help_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count()
+        critical_assigned = incident_assigned.filter(priority=IncidentTicket.PRIORITY_CRITICAL).count() + help_assigned.filter(priority=Ticket.PRIORITY_CRITICAL).count()
 
         context['total_assigned'] = total_assigned
         context['open_assigned'] = open_assigned
         context['resolved_assigned'] = resolved_assigned
         context['critical_assigned'] = critical_assigned
+        context['incident_assigned'] = incident_assigned[:20]
+        context['help_assigned'] = help_assigned[:20]
+        context['assigned_tickets'] = list(incident_assigned) + list(help_assigned)
         return context
 
 
@@ -730,3 +722,40 @@ class AdminTicketActionView(LoginRequiredMixin, View):
                 logger.exception('Failed to notify new assignee via email for ticket id=%s', ticket.pk)
 
         return HttpResponseRedirect(reverse('admin-dashboard'))
+
+
+class TicketStatusUpdateView(LoginRequiredMixin, View):
+    """Update ticket status for both IncidentTicket and Ticket objects.
+    Staff can only update tickets assigned to them.
+    """
+    def post(self, request, *args, **kwargs):
+        ticket_type = request.POST.get('ticket_type')
+        ticket_pk = request.POST.get('ticket_pk')
+        new_status = request.POST.get('status')
+        
+        if ticket_type == 'incident':
+            ticket = get_object_or_404(IncidentTicket, pk=ticket_pk)
+            if request.user != ticket.assignee and not request.user.is_superuser:
+                return HttpResponseForbidden('You can only update tickets assigned to you')
+            # Update incident ticket status
+            ticket.status = new_status
+            ticket.last_updated_by = request.user
+            if new_status == IncidentTicket.NIST_STAGE_RECOVERY:
+                ticket.is_resolved = True
+            else:
+                ticket.is_resolved = False
+        elif ticket_type == 'help':
+            ticket = get_object_or_404(Ticket, pk=ticket_pk)
+            if request.user != ticket.assignee and not request.user.is_superuser:
+                return HttpResponseForbidden('You can only update tickets assigned to you')
+            ticket.status = new_status
+            ticket.last_updated_by = request.user
+        else:
+            raise Http404('Invalid ticket type')
+        
+        ticket.save()
+        
+        # Redirect back to referring page or staff dashboard
+        referer = request.META.get('HTTP_REFERER', reverse('staff-assigned'))
+        return HttpResponseRedirect(referer)
+

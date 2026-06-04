@@ -106,13 +106,51 @@
                         <td>{% if ticket.reporter %}{{ ticket.reporter.username }}{% else %}Unknown{% endif %}</td>
                         <td class="text-muted small">{{ ticket.updated_at|date:"M d, Y H:i" }}</td>
                         <td class="text-end pe-4">
-                            <div class="btn-group" role="group">
-                                {% if ticket.model_type == 'incidentticket' %}
-                                    <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-primary btn-sm">View/Edit</a>
-                                {% else %}
-                                    <a href="{% url 'help-ticket-detail' ticket.pk %}" class="btn btn-outline-primary btn-sm">View</a>
-                                {% endif %}
-                            </div>
+                            {% if ticket.model_type == 'incidentticket' %}
+                                <div class="d-flex gap-2 justify-content-end">
+                                    {% if not ticket.is_resolved %}
+                                    <form method="post" action="{% url 'ticket-status-update' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="ticket_type" value="incident">
+                                        <input type="hidden" name="ticket_pk" value="{{ ticket.pk }}">
+                                        <input type="hidden" name="status" value="CONTAINMENT">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">In Progress</button>
+                                    </form>
+                                    <form method="post" action="{% url 'ticket-status-update' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="ticket_type" value="incident">
+                                        <input type="hidden" name="ticket_pk" value="{{ ticket.pk }}">
+                                        <input type="hidden" name="status" value="RECOVERY">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Done</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-success">✓ Completed</span>
+                                    {% endif %}
+                                    <a href="{% url 'ticket-edit' ticket.pk %}" class="btn btn-outline-primary btn-sm">Details</a>
+                                </div>
+                            {% else %}
+                                <div class="d-flex gap-2 justify-content-end">
+                                    {% if ticket.status != 'RESOLVED' and ticket.status != 'CLOSED' %}
+                                    <form method="post" action="{% url 'ticket-status-update' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="ticket_type" value="help">
+                                        <input type="hidden" name="ticket_pk" value="{{ ticket.pk }}">
+                                        <input type="hidden" name="status" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">In Progress</button>
+                                    </form>
+                                    <form method="post" action="{% url 'ticket-status-update' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="ticket_type" value="help">
+                                        <input type="hidden" name="ticket_pk" value="{{ ticket.pk }}">
+                                        <input type="hidden" name="status" value="RESOLVED">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Done</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-success">✓ Completed</span>
+                                    {% endif %}
+                                    <a href="{% url 'help-ticket-detail' ticket.pk %}" class="btn btn-outline-primary btn-sm">Details</a>
+                                </div>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
