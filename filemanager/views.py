@@ -655,6 +655,12 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
 
 
 class AdminTicketActionView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        """Redirect GET requests back to the admin dashboard"""
+        if not request.user.is_staff:
+            return self.handle_no_permission()
+        return HttpResponseRedirect(reverse('admin-dashboard'))
+
     def post(self, request, *args, **kwargs):
         if not request.user.is_staff:
             return self.handle_no_permission()
