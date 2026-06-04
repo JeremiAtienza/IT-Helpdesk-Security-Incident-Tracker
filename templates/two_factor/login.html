@@ -1,0 +1,52 @@
+{% extends 'two_factor/core.html' %}
+{% load i18n %}
+
+{% block content_block %}
+<form method="post" class="form-horizontal">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong>
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    {% for field in form %}
+        <div class="mb-4">
+            {% if field.field.widget.input_type != 'hidden' %}
+                <label class="form-label fw-bold text-secondary">{{ field.label }}</label>
+            {% endif %}
+            
+            {% if field.field.widget.input_type == 'checkbox' %}
+                <div class="form-check">
+                    {{ field }}
+                    <label class="form-check-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                </div>
+            {% else %}
+                {{ field }}
+            {% endif %}
+            
+            {% for error in field.errors %}
+                <div class="text-danger small mt-2">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <div class="d-grid gap-2 mt-5">
+        <button type="submit" class="btn btn-dark btn-lg rounded-3">{% trans 'Sign in' %}</button>
+    </div>
+</form>
+
+{% if backup_tokens %}
+    <hr class="my-4">
+    <p class="text-muted text-center small">
+        {% trans "Trouble logging in?" %} <a href="{% url 'two_factor:backup_tokens' %}">{% trans 'Use backup token' %}</a>
+    </p>
+{% endif %}
+{% endblock %}

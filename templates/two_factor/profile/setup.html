@@ -1,0 +1,35 @@
+{% extends 'two_factor/core.html' %}
+{% load i18n %}
+
+{% block content_block %}
+<h3 class="text-center mb-4">{% trans 'Setup Two-Factor Authentication' %}</h3>
+
+<p class="text-muted">{% trans 'Scan this QR code with your authenticator app:' %}</p>
+
+<div class="text-center mb-4">
+    {{ QR_image }}
+</div>
+
+<p class="text-muted small text-center">
+    {% trans 'Can\'t scan? Enter this code manually:' %}<br>
+    <code class="fs-6">{{ secret }}</code>
+</p>
+
+<form method="post" class="mt-5">
+    {% csrf_token %}
+    
+    {% for field in form %}
+        <div class="mb-4">
+            <label class="form-label fw-bold text-secondary">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+                <div class="text-danger small mt-2">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <div class="d-grid gap-2 mt-5">
+        <button type="submit" class="btn btn-dark btn-lg rounded-3">{% trans 'Continue' %}</button>
+    </div>
+</form>
+{% endblock %}
