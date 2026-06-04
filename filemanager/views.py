@@ -1,6 +1,7 @@
 import csv
 import io
 import logging
+from collections import Counter
 from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -554,12 +555,22 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             open_statuses = [IncidentTicket.NIST_STAGE_DETECTION, IncidentTicket.NIST_STAGE_CONTAINMENT]
             resolved_statuses = [IncidentTicket.NIST_STAGE_RECOVERY]
             tickets = IncidentTicket.objects.all()
+            help_open_statuses = [Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]
+            help_resolved_statuses = [Ticket.STATUS_RESOLVED, Ticket.STATUS_CLOSED]
+            help_tickets = Ticket.objects.all()
 
-            ctx['open_tickets'] = tickets.filter(status__in=open_statuses).count()
-            ctx['resolved_tickets'] = tickets.filter(status__in=resolved_statuses).count()
-            ctx['recent_tickets'] = tickets.filter(created_at__gte=timezone.now() - timedelta(days=1)).count()
-            ctx['security_incidents'] = tickets.filter(is_security_incident=True).count()
-            ctx['stale_tickets'] = tickets.filter(status__in=open_statuses, updated_at__lt=timezone.now() - timedelta(hours=72)).count()
+            open_count = tickets.filter(status__in=open_statuses).count() + help_tickets.filter(status__in=help_open_statuses).count()
+            resolved_count = tickets.filter(status__in=resolved_statuses).count() + help_tickets.filter(status__in=help_resolved_statuses).count()
+            recent_count = tickets.filter(created_at__gte=timezone.now() - timedelta(days=1)).count() + help_tickets.filter(created_at__gte=timezone.now() - timedelta(days=1)).count()
+            security_count = tickets.filter(is_security_incident=True).count() + help_tickets.filter(is_security_incident=True).count()
+            stale_count = tickets.filter(status__in=open_statuses, updated_at__lt=timezone.now() - timedelta(hours=72)).count() + help_tickets.filter(status__in=help_open_statuses, updated_at__lt=timezone.now() - timedelta(hours=72)).count()
+
+            ctx['open_tickets'] = open_count
+            ctx['resolved_tickets'] = resolved_count
+            ctx['recent_tickets'] = recent_count
+            ctx['security_incidents'] = security_count
+            ctx['stale_tickets'] = stale_count
+
             resolved = tickets.filter(status__in=resolved_statuses)
             total = 0
             count = 0
@@ -568,13 +579,33 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                     total += (t.updated_at - t.created_at).total_seconds()
                     count += 1
             ctx['avg_resolution_hours'] = (total / count / 3600) if count else None
+
             ctx['live_tickets'] = tickets.filter(status__in=open_statuses).order_by('-created_at')[:10]
-            ctx['status_counts'] = tickets.values('status').annotate(count=models.Count('id')).order_by('-count')
-            ctx['source_counts'] = tickets.values('source').annotate(count=models.Count('id')).order_by('-count')[:10]
+
+            status_counter = Counter()
+            for item in tickets.values('status').annotate(count=models.Count('id')):
+                status_counter[item['status']] += item['count']
+            for item in help_tickets.values('status').annotate(count=models.Count('id')):
+                status_counter[item['status']] += item['count']
+            ctx['status_counts'] = [{'status': status, 'count': count} for status, count in status_counter.most_common()]
+
+            source_counter = Counter()
+            for item in tickets.values('source').annotate(count=models.Count('id')):
+                source_counter[item['source']] += item['count']
+            for item in help_tickets.values('source').annotate(count=models.Count('id')):
+                source_counter[item['source']] += item['count']
+            ctx['source_counts'] = [{'source': source, 'count': count} for source, count in source_counter.most_common()][:10]
+
+            category_counter = Counter()
+            for item in tickets.values('category__name').annotate(count=models.Count('id')):
+                if item['category__name']:
+                    category_counter[item['category__name']] += item['count']
+            for item in help_tickets.values('category__name').annotate(count=models.Count('id')):
+                if item['category__name']:
+                    category_counter[item['category__name']] += item['count']
             ctx['top_categories'] = [
-                (Category.objects.filter(name=item['category__name']).first(), item['count'])
-                for item in tickets.values('category__name').annotate(count=models.Count('id')).order_by('-count')[:10]
-                if item['category__name']
+                (Category.objects.filter(name=name).first(), count)
+                for name, count in category_counter.most_common(10)
             ]
             ctx['status_choices'] = IncidentTicket.STATUS_CHOICES
             ctx['staff_users'] = get_user_model().objects.filter(is_staff=True, is_active=True).order_by('username')
