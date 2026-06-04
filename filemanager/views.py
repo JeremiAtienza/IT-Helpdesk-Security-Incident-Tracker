@@ -240,6 +240,12 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         logger.info('Web ticket submission by %s', self.request.user.username)
         return super().form_valid(form)
 
+    def get_success_url(self):
+        # Redirect staff/admin to dashboard to see the new ticket
+        if self.request.user.is_staff:
+            return reverse_lazy('admin-dashboard')
+        return reverse_lazy('ticket-list')
+
 class TicketUpdateView(LoginRequiredMixin, UpdateView):
     model = IncidentTicket
     template_name = 'filemanager/ticket_form.html'
