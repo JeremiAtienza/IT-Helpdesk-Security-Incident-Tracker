@@ -158,7 +158,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if ticket._meta.model_name == 'incidentticket' %}
+                                {% if ticket.model_type == 'incidentticket' %}
                                 <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
                                     {% csrf_token %}
                                     <select name="assignee" class="form-select form-select-sm me-2" style="width:160px;" aria-label="Select assignee" onchange="this.form.submit();">

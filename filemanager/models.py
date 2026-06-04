@@ -209,6 +209,10 @@ class IncidentTicket(models.Model):
             self.escalated_at = timezone.now()
             incident_logger.info('Ticket escalated id=%s level=%s', self.pk, self.escalation_level)
 
+    @property
+    def model_type(self):
+        return 'incidentticket'
+
 
 # --- Ticketing and incident models (expanded) ---
 from django.conf import settings
@@ -332,6 +336,10 @@ class Ticket(models.Model):
     @property
     def is_overdue(self):
         return bool(self.sla_due and timezone.now() > self.sla_due and self.status != self.STATUS_RESOLVED)
+
+    @property
+    def model_type(self):
+        return 'ticket'
 
     def auto_categorize(self):
         if self.category:
