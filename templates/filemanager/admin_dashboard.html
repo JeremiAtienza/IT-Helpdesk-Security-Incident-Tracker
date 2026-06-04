@@ -158,7 +158,11 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
+                                {% if ticket.model_type == 'incidentticket' %}
+                                <form method="post" action="{% url 'admin-ticket-action' 'incident' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
+                                {% else %}
+                                <form method="post" action="{% url 'admin-ticket-action' 'help' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
+                                {% endif %}
                                     {% csrf_token %}
                                     <select name="assignee" class="form-select form-select-sm me-2" style="width:160px;" aria-label="Select assignee" onchange="this.form.submit();">
                                         <option value="">Unassigned</option>
