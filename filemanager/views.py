@@ -543,8 +543,8 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         try:
-            open_statuses = [IncidentTicket.STATUS_DETECTION, IncidentTicket.STATUS_CONTAINMENT]
-            resolved_statuses = [IncidentTicket.STATUS_RECOVERY]
+            open_statuses = [IncidentTicket.NIST_STAGE_DETECTION, IncidentTicket.NIST_STAGE_CONTAINMENT]
+            resolved_statuses = [IncidentTicket.NIST_STAGE_RECOVERY]
             tickets = IncidentTicket.objects.all()
 
             ctx['open_tickets'] = tickets.filter(status__in=open_statuses).count()
