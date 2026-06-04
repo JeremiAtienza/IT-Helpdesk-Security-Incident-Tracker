@@ -8,6 +8,7 @@ STAFF_GROUP_NAMES = [
     'Account Support Team',
     'Security Team',
     'Network Administrator',
+    'Admin',
 ]
 
 
