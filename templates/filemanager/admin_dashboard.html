@@ -160,7 +160,6 @@
                             <td>
                                 <form method="post" action="{% url 'admin-ticket-action' ticket.pk %}" class="d-flex align-items-center" aria-label="Assign ticket">
                                     {% csrf_token %}
-                                    <input type="hidden" name="ticket_type" value="{{ ticket._meta.model_name }}">
                                     <select name="assignee" class="form-select form-select-sm me-2" style="width:160px;" aria-label="Select assignee" onchange="this.form.submit();">
                                         <option value="">Unassigned</option>
                                         {% for user in staff_users %}

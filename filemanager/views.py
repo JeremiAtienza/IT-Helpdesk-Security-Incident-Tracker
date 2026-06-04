@@ -665,17 +665,11 @@ class AdminTicketActionView(LoginRequiredMixin, View):
         if not request.user.is_staff:
             return self.handle_no_permission()
 
-        ticket_type = request.POST.get('ticket_type')
-        if ticket_type == 'ticket':
-            ticket = get_object_or_404(Ticket, pk=kwargs.get('pk'))
-            valid_statuses = {choice[0] for choice in Ticket.STATUS_CHOICES}
-        else:
-            ticket = get_object_or_404(IncidentTicket, pk=kwargs.get('pk'))
-            valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
-
+        ticket = get_object_or_404(IncidentTicket, pk=kwargs.get('pk'))
         status_value = request.POST.get('status')
         assignee_id = request.POST.get('assignee')
 
+        valid_statuses = {choice[0] for choice in IncidentTicket.STATUS_CHOICES}
         if status_value in valid_statuses:
             ticket.status = status_value
 
