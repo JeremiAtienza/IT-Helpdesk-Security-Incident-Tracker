@@ -616,9 +616,14 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             
             # Staff workload summary
             staff_workload = []
+            help_open_statuses = [Ticket.STATUS_PENDING, Ticket.STATUS_IN_PROGRESS]
             for user in ctx['staff_users']:
-                total_assigned = IncidentTicket.objects.filter(assignee=user).count()
-                unresolved_assigned = IncidentTicket.objects.filter(assignee=user, is_resolved=False).count()
+                incident_total = IncidentTicket.objects.filter(assignee=user).count()
+                help_total = Ticket.objects.filter(assignee=user).count()
+                total_assigned = incident_total + help_total
+                incident_unresolved = IncidentTicket.objects.filter(assignee=user, is_resolved=False).count()
+                help_unresolved = Ticket.objects.filter(assignee=user, status__in=help_open_statuses).count()
+                unresolved_assigned = incident_unresolved + help_unresolved
                 if total_assigned > 0:
                     staff_workload.append((user, total_assigned, unresolved_assigned))
             ctx['staff_workload'] = staff_workload
