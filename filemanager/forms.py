@@ -23,13 +23,12 @@ class IncidentTicketForm(forms.ModelForm):
 
     class Meta:
         model = IncidentTicket
-        fields = ['title', 'description', 'category', 'priority', 'status', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
+        fields = ['title', 'description', 'category', 'priority', 'impact_level', 'affected_assets', 'iocs', 'evidence_summary']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Incident summary'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describe the issue or security incident'}),
             'category': forms.Select(attrs={'class': 'form-select', 'style': 'appearance: auto; background-color: #ffffff; color: #112d4e;'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
             'impact_level': forms.Select(attrs={'class': 'form-select'}),
             'affected_assets': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'List affected hosts/IPs/services (JSON or comma-separated)'}),
             'iocs': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Indicators of compromise (hashes, domains, IPs)'}),
